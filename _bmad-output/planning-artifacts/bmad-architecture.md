@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2]
+stepsCompleted: [1, 2, 3, 4]
 inputDocuments: ['_bmad-output/planning-artifacts/prd.md']
 workflowType: 'architecture'
 project_name: 'SwiftCart'
@@ -37,6 +37,87 @@ The project is categorized as **High Complexity** due to the requirement for rea
 - **Latency Management**: Maintaining visual coherence between physical gestures and server state.
 - **Thematic Consistency (Paradox Logic)**: Unified error handling and state rollbacks.
 - **Distributed Concurrency**: Using Redis locks to manage inventory atomicity during rapid checkouts.
+
+## Starter Template Evaluation
+
+### Primary Technology Domain
+**High-Performance Full-stack Web** based on real-time physics and volatile state requirements.
+
+### Starter Options Considered
+- **Vite + React 19 (Frontend Only)**: Highly optimized build pipeline, but requires manual backend integration.
+- **Django 6 + Channels 4.3 (Backend Only)**: Best-in-class for real-time WebSockets and Redis integration, but needs a separate frontend build.
+- **Next.js 15 (Full-stack)**: Excellent DX, but integrating Django Channels/Redis-First Decay Engine adds unnecessary complexity compared to a pure Python backend.
+
+### Selected Starter: Custom Decoupled (Vite-React + Django-Channels)
+
+**Rationale for Selection:**
+To maintain a consistent **60 FPS**, the **Physics Engine must be isolated from the standard E-commerce CRUD logic**. A decoupled architecture allows the frontend to run the physics manifold (GSAP) in a dedicated **Web Worker**, synchronized via a high-frequency **WebSocket pipe** (Django Channels) that bypasses traditional REST/HTTP bottlenecks used for typical CRUD (Product metadata, User Auth).
+
+**Initialization Recommendation:**
+- **Frontend**: `npm create vite@latest ./ -- --template react-ts` (React 19, TypeScript)
+- **Backend**: `pip install django channels[daphne] redis` (Django 6.0, Channels 4.3)
+
+**Architectural Decisions Provided by Foundation:**
+- **Language**: TypeScript (Frontend) / Python 3.12+ (Backend)
+- **Styling**: Tailwind CSS 4.0 (for UI stability) + GSAP 3.14 (for physics-driven dynamics).
+- **Build Tooling**: Vite for sub-second HMR and optimized asset lazy-loading.
+- **Real-Time**: Django Channels + Redis for sub-50ms state propagation.
+
+## Core Architectural Decisions
+
+### Decision Priority Analysis
+
+**Critical Decisions (Block Implementation):**
+- **Off-Main-Thread Physics Mirror**: Use of Web Workers is essential to hit the 60 FPS target.
+- **MessagePack Serialization**: Binary format required to minimize payload overhead for <50ms packets.
+- **Redis Hash State**: Primary store for volatile orbital data for MVP velocity.
+
+**Important Decisions (Shape Architecture):**
+- **Lag Compensation Logic**: Robust interpolation required within the Web Worker to handle network jitters.
+- **Stripe-Only Payments**: Explicit decision to use zero-persistence PII for compliance and security.
+
+### Data Architecture
+
+- **Primary Volatile Store**: Redis 8.0 (Hashes)
+  - *Rationale*: Individual product states (coordinates, mass, price) will be stored as Redis Hashes for O(1) access and update speeds. Simple to implement and extremely fast for high-frequency reads/writes.
+- **Persistent Database**: PostgreSQL 17
+  - *Rationale*: Standard CRUD (Users, Orders, Product Metadata) and historical price logging.
+- **Caching Strategy**: Redis-first for all "Alive UI" components; aggressive PostgreSQL query caching for static metadata.
+
+### Authentication & Security
+
+- **Authentication**: JWT (JSON Web Tokens) with 15-minute expiry.
+- **Security Middleware**: Django-standard CSRF/XSS protection for CRUD; WebSocket Origin validation for the Physics manifold.
+- **Payment Security**: Stripe Tokenization only. No PCI data touches local disks or memory beyond RAM-volatile buffers during transaction handoffs.
+
+### API & Communication Patterns
+
+- **High-Frequency Pipe**: WebSockets (Django Channels) + MessagePack.
+  - *Rationale*: Binary serialization via MessagePack reduces packet size by ~40% compared to JSON, critical for maintaining the <50ms visual latency budget.
+- **Standard CRUD API**: REST (Django REST Framework).
+  - *Rationale*: Used for non-time-sensitive actions like user login, product catalog management, and order history.
+
+### Frontend Architecture
+
+- **Physics Isolation (Web Worker)**:
+  - **WebSocket Worker**: Manages the persistent socket and deserializes MessagePack packets.
+  - **Manifold Worker**: Performs lag compensation and state interpolation.
+- **Rendering Layer**: React 19 + GSAP 3.14 (hardware-accel transforms only).
+- **State Management**: Zustand for UI state; raw Worker buffers for physics state to avoid React reconciliation overhead for 60FPS visuals.
+
+### Decision Impact Analysis
+
+**Implementation Sequence:**
+1. Initialize Vite (React/TS) and Django (Channels/Redis).
+2. Implement WebSocket Web Worker with MessagePack support.
+3. Build Redis Pricing/Physics Engine (Hashes).
+4. Integrate GSAP Manifold with Worker state.
+5. Implement Stripe/Checkout CRUD flows.
+
+**Cross-Component Dependencies:**
+The **Manifold Worker** is the "single source of truth" for the UI, but it depends entirely on the **Django Channels** stream being alive. Failure in the socket triggers the "Temporal Paradox" (Thematic Rollback) logic immediately.
+
+
 
 
 ## High-Level System Architecture
