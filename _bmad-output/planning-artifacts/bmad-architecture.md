@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2, 3, 4]
+stepsCompleted: [1, 2, 3, 4, 5]
 inputDocuments: ['_bmad-output/planning-artifacts/prd.md']
 workflowType: 'architecture'
 project_name: 'SwiftCart'
@@ -86,9 +86,18 @@ To maintain a consistent **60 FPS**, the **Physics Engine must be isolated from 
 
 ### Authentication & Security
 
-- **Authentication**: JWT (JSON Web Tokens) with 15-minute expiry.
-- **Security Middleware**: Django-standard CSRF/XSS protection for CRUD; WebSocket Origin validation for the Physics manifold.
-- **Payment Security**: Stripe Tokenization only. No PCI data touches local disks or memory beyond RAM-volatile buffers during transaction handoffs.
+- **Authentication**: JWT (JSON Web Tokens) with a 15-minute expiry. Required for both REST API and WebSocket handshakes.
+- **WebSocket Security**:
+  - **Handshake Verification**: JWT validation during the `connect` event.
+  - **Origin Control**: Strict enforcement of Allowed Origins to prevent cross-site hijacking of the physics engine.
+- **Payment Security (Zero-PII)**: 
+  - All transactions use **Stripe Tokenization**. 
+  - Only `PaymentMethod` and `PaymentIntent` IDs are processed server-side.
+  - No PCI data touches local persistent storage.
+- **Atomic Checkout Protocol**:
+  - Combines **Redis WATCH** on product state with **PostgreSQL Transactions**.
+  - Ensures price freezing and stock decrement are atomic across the distributed system.
+  - Failure at any step triggers `ERR_TEMPORAL_PARADOX`.
 
 ### API & Communication Patterns
 
@@ -116,6 +125,72 @@ To maintain a consistent **60 FPS**, the **Physics Engine must be isolated from 
 
 **Cross-Component Dependencies:**
 The **Manifold Worker** is the "single source of truth" for the UI, but it depends entirely on the **Django Channels** stream being alive. Failure in the socket triggers the "Temporal Paradox" (Thematic Rollback) logic immediately.
+
+## Implementation Patterns & Consistency Rules
+
+### Naming Patterns
+- **Redis Keys**: Follow the pattern `sc:<domain>:<subdomain>:<id>`.
+  - `sc:prod:state:{id}` for volatile physics.
+  - `sc:user:cart:{id}` for session-based cart orbits.
+- **Database**: `snake_case` for all PostgreSQL tables and columns (Django default).
+- **Frontend**: 
+  - `PascalCase` for React components.
+  - `camelCase` for variables and props.
+  - `kebab-case` for file names (e.g., `gravity-well.tsx`, `celestial-product.tsx`).
+
+### Communication Patterns
+- **High-Frequency Payloads (Physics)**: Use binary MessagePack with **Short Keys** to minimize packet size.
+  - `p`: Position vector
+  - `v`: Velocity vector
+  - `m`: Communal Mass
+  - `t`: Server Timestamp
+- **Metadata Payloads (Initial/CRUD)**: Use descriptive keys (e.g., `productId`, `stockLevel`) for clarity and debuggability.
+- **Web Worker Interface**: `Command/Event` pattern via `postMessage`.
+  - Commands: `type: 'CONNECT'`, `type: 'SEND_GESTURE'`.
+  - Events: `type: 'STATE_UPDATE'`, `type: 'ERROR_PARADOX'`.
+
+### Structure Patterns
+- **Feature-Based Frontend**: Logic is grouped by feature rather than type. 
+  - `src/features/physics/` contains all "noisy" logic (GSAP manifold, orbital math).
+  - `src/features/commerce/` contains "boring" logic (catalog, checkout).
+- **Decoupled Backend**: 
+  - `apps/` for standard Django apps (Auth, Product Metadata).
+  - `physics/` for the high-frequency Redis engine.
+
+### Error & Process Patterns
+- **The "Temporal Paradox"**: Master error code `ERR_TEMPORAL_PARADOX`.
+  - This trigger is responsible for initiating the **Thematic Rollback** (Rewind animation) across the UI.
+  - Used for inventory desync, payment failures, or socket disconnects during critical state transitions.
+- **Loading States**: `isWarping` for checkout; `isSyncing` for initial orbital sync.
+
+### Project Structure Visualization
+
+```text
+SwiftCart/
+├── backend/                # Django 6.0 + Channels 4.3
+│   ├── apps/               # Modular features (commerce, inventory)
+│   ├── physics/            # Core Redis-First Decay Engine
+│   │   ├── consumers.py    # WebSocket logic
+│   │   └── engine.py       # Physics & Pricing logic
+│   └── manage.py
+├── frontend/               # Vite + React 19 + TypeScript
+│   ├── src/
+│   │   ├── features/       # Feature-based organization
+│   │   │   ├── physics/    # Gravity Well, Orbits, Flicking
+│   │   │   └── commerce/   # Catalog, Hyperdrive Checkout
+│   │   ├── workers/        # Off-main-thread physics logic
+│   │   │   └── physics.worker.ts
+│   │   └── shared/         # Common hooks, components, Utils
+│   └── vite.config.ts
+└── docs/                   # Standards & Decisions (ADDs, PRD)
+```
+
+### Enforcement Guidelines
+**All AI Agents MUST:**
+- Use the **Physics Mirror** pattern for all real-time visual updates.
+- Never write payment logic; always hand off to the `StripeHub` utility.
+- Format all binary payloads using the shared `MessagePackSchema` to ensure frontend/backend alignment.
+
 
 
 
@@ -151,6 +226,50 @@ graph TD
     Redis -->|Recalculate Physics/Price| Redis
     Redis -->|State Push| Channels
     Channels -->|WebSocket| React
+    Redis -->|State Push| Channels
+    Channels -->|WebSocket| React
     Redis -->|Async Sync| DB[(PostgreSQL)]
     React -->|Stripe Token| Stripe[[Stripe API]]
 ```
+
+## Data Architecture
+
+### 1. Persistent Layer (PostgreSQL)
+The persistent layer handles core business logic, user management, and historical state.
+
+| Model | Key Fields | Purpose |
+| :--- | :--- | :--- |
+| **Product** | `uuid`, `slug`, `msrp`, `base_mass` | Master catalog and initial physics variables. |
+| **Inventory** | `product_id`, `stock_count`, `reserved_count` | Atomic stock tracking with optimistic reservations. |
+| **Order** | `id`, `user_id`, `total_price`, `stripe_intent_id` | Transactional integrity for checkouts. |
+
+### 2. Volatile Layer (Redis Hashes)
+High-frequency physics and pricing state are stored in Redis Hashes for sub-50ms access.
+
+**Key Pattern**: `sc:prod:state:{uuid}`
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `p_x, p_y, p_z` | Float | Orbital position vectors. |
+| `v_x, v_y, v_z` | Float | Velocity vectors for lag compensation. |
+| `m` | Float | **Communal Mass**: Increases with user interaction/orbits. |
+| `g` | Float | Local gravity coefficient (Mass-dependent). |
+| `price_current` | Decimal | The real-time decayed price (Driven by mass/time). |
+
+### 3. Sync & Integrity Mechanism
+
+- **Cold Boot**: When the system starts, a management task populates Redis Hashes from the `Product` table.
+- **State Capture**: During "Hyperdrive" checkout, the absolute price is read from `price_current` (Redis) and written to the `OrderItem` (PostgreSQL).
+- **Paradox Recovery**: If Redis state is lost, the system falls back to `msrp` (PostgreSQL) and resets physics vectors, triggering a thematic `ERR_TEMPORAL_PARADOX` UI reset.
+
+## Summary & Sign-off
+
+The SwiftCart architecture is a dual-engine system designed for immersive, real-time e-commerce. By decoupling high-frequency physics (Redis/WebWorkers) from transactional business logic (PostgreSQL/Django), we achieve the necessary <50ms visual latency without sacrificing data integrity.
+
+### Key Architectural Pillars
+- **Performance**: Redis-first volatility with off-main-thread physics manifolds.
+- **Security**: Zero-PII Stripe tokenization and JWT-guarded WebSocket channels.
+- **Consistency**: Atomic cross-store protocols (Redis Watch + DB Transactions).
+- **Theme**: Error handling treated as "Temporal Paradoxes" with unified visual rollbacks.
+
+**Status**: [Finalized] 2026-02-13
