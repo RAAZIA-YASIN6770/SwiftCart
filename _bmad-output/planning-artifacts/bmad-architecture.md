@@ -1,6 +1,6 @@
 ---
 stepsCompleted: [1, 2, 3, 4, 5]
-inputDocuments: ['_bmad-output/planning-artifacts/prd.md']
+inputDocuments: ['_bmad-output/planning-artifacts/bmad-prd.md']
 workflowType: 'architecture'
 project_name: 'SwiftCart'
 user_name: 'AQ'
