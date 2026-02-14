@@ -8,7 +8,9 @@ import { usePhysicsStore } from '../store/physicsStore';
 class PulseReceiver {
     private socket: WebSocket | null = null;
     private url: string;
-    private reconnectTimeout: number = 2000;
+    private reconnectAttempts: number = 0;
+    private maxReconnectTimeout: number = 30000; // 30s max
+    private baseReconnectTimeout: number = 1000; // 1s start
 
     constructor(url: string = 'ws://localhost:8000/ws/pulse/') {
         this.url = url;
@@ -17,20 +19,33 @@ class PulseReceiver {
     public connect() {
         if (this.socket) return;
 
-        this.socket = new WebSocket(this.url);
+        // Simplified JWT token for implementation demo
+        const token = 'orbital_sync_token_v1';
+        this.socket = new WebSocket(`${this.url}?token=${token}`);
         this.socket.binaryType = 'arraybuffer';
 
         this.socket.onopen = () => {
             console.log('[PulseReceiver] Connected to Pulse Stream');
+            this.reconnectAttempts = 0; // Reset on success
         };
 
         this.socket.onmessage = (event: MessageEvent) => {
             try {
                 // Decode binary MessagePack data
-                const decoded = decode(event.data) as { id: string, p: number, t: number };
+                const decoded = decode(event.data) as {
+                    id: string,
+                    p: number,
+                    pos: { x: number, y: number },
+                    vel: { x: number, y: number },
+                    t: number
+                };
 
-                // Update the global store at high frequency
+                // Update the global store (Price)
                 usePhysicsStore.getState().updatePrice(decoded.id, decoded.p);
+
+                // Forward Position/Velocity to Physics Worker for Interpolation
+                // We'll use a shared worker reference or a custom event
+                window.dispatchEvent(new CustomEvent('pulse_sync', { detail: decoded }));
 
                 // Performance Note: 
                 // In a production environment with dozens of bodies, we might queue 
@@ -42,9 +57,17 @@ class PulseReceiver {
         };
 
         this.socket.onclose = () => {
-            console.warn('[PulseReceiver] Disconnected. Reconnecting...');
             this.socket = null;
-            setTimeout(() => this.connect(), this.reconnectTimeout);
+            this.reconnectAttempts++;
+
+            // Exponential Backoff: base * 2^attempts (capped)
+            const delay = Math.min(
+                this.baseReconnectTimeout * Math.pow(2, this.reconnectAttempts),
+                this.maxReconnectTimeout
+            );
+
+            console.warn(`[PulseReceiver] Pulse dead. Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})...`);
+            setTimeout(() => this.connect(), delay);
         };
 
         this.socket.onerror = (err) => {

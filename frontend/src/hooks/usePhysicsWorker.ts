@@ -46,5 +46,19 @@ export const usePhysicsWorker = () => {
         workerRef.current?.postMessage({ type: 'UPDATE_BODY', payload: { bodyId, update } });
     };
 
+    // Listen for Pulse Sync events and forward to worker (Sprint 2.3)
+    useEffect(() => {
+        const handlePulseSync = (e: any) => {
+            workerRef.current?.postMessage({
+                type: 'PULSE_SYNC',
+                payload: e.detail
+            });
+        };
+
+        window.addEventListener('pulse_sync', handlePulseSync);
+        return () => window.removeEventListener('pulse_sync', handlePulseSync);
+    }, []);
+
     return { addBody, applyImpulse, updateBody };
 };
+
