@@ -5,6 +5,7 @@ interface BodyState {
     position: { x: number; y: number };
     angle: number;
     isStatic: boolean;
+    radius?: number;
 }
 
 interface PhysicsStore {

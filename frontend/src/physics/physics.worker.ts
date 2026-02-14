@@ -17,11 +17,17 @@ let lastTimestamp = 0;
 const PHYSICS_CONFIG = {
     gravity: {
         x: 0,
-        y: 1, // Standard gravity for the initial test
+        y: 0, // Disable linear gravity
         scale: 0.001
     },
+    attractor: {
+        x: 400,
+        y: 300,
+        strength: 0.5,
+        softening: 200 // Prevent infinite force at distance 0
+    },
     fps: 60,
-    delta: 1000 / 60 // 16.67ms per frame
+    delta: 1000 / 60
 };
 
 /**
@@ -35,15 +41,24 @@ function initPhysics() {
 
     world = engine.world;
 
-    // Add a ground plane for the gravity test
-    const ground = Matter.Bodies.rectangle(400, 580, 810, 60, { isStatic: true });
-    Matter.World.add(world, [ground]);
+    // Add multiple orbital objects
+    for (let i = 0; i < 15; i++) {
+        const x = Math.random() * 800;
+        const y = Math.random() * 600;
+        const radius = 10 + Math.random() * 20;
 
-    // Add a falling box
-    const box = Matter.Bodies.rectangle(400, 200, 80, 80);
-    Matter.World.add(world, [box]);
+        const body = Matter.Bodies.circle(x, y, radius, {
+            frictionAir: 0.02, // Higher friction to help objects settle
+            restitution: 0.5,  // Bounciness
+            render: {
+                fillStyle: '#00aaff'
+            }
+        });
 
-    console.log('[Physics Worker] Engine initialized');
+        Matter.World.add(world, body);
+    }
+
+    console.log('[Physics Worker] Engine initialized with Radial Attraction');
 
     // Start the animation loop
     lastTimestamp = performance.now();
@@ -59,21 +74,48 @@ function initPhysics() {
  * Main physics loop running at 60 FPS
  */
 function loop(time: number) {
-    if (!engine) return;
+    if (!engine || !world) return;
 
     const delta = time - lastTimestamp;
 
-    // Target 60 FPS (approx 16.6ms)
+    // Target 60 FPS
     if (delta >= PHYSICS_CONFIG.delta) {
+        // Apply radial attraction to all bodies
+        const bodies = Matter.Composite.allBodies(world);
+        const { x: attrX, y: attrY, strength, softening } = PHYSICS_CONFIG.attractor;
+
+        bodies.forEach(body => {
+            if (body.isStatic) return;
+
+            const dx = attrX - body.position.x;
+            const dy = attrY - body.position.y;
+            const distanceSq = dx * dx + dy * dy;
+            const distance = Math.sqrt(distanceSq);
+
+            if (distance > 0) {
+                // Inverse Square Law: Force = m1*m2*G / r^2
+                // We'll use a simplified version: Force = Strength / (r^2 + softening)
+                const forceMagnitude = (body.mass * strength) / (distanceSq + softening);
+
+                // Unit vector pointing to center
+                const force = {
+                    x: (dx / distance) * forceMagnitude,
+                    y: (dy / distance) * forceMagnitude
+                };
+
+                Matter.Body.applyForce(body, body.position, force);
+            }
+        });
+
         Matter.Engine.update(engine, PHYSICS_CONFIG.delta);
 
-        // Extract body positions for rendering
-        const bodies = Matter.Composite.allBodies(world!);
+        // Extract body states
         const bodyStates = bodies.map(body => ({
             id: body.id,
             position: { x: body.position.x, y: body.position.y },
             angle: body.angle,
-            isStatic: body.isStatic
+            isStatic: body.isStatic,
+            radius: (body as any).circleRadius // Matter.js specific
         }));
 
         self.postMessage({
