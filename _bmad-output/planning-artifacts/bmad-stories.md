@@ -90,16 +90,17 @@ This document breaks down the core Epics into granular, sprint-ready User Storie
 
 ### Story 2.1: The Binary Core (MessagePack Serialization)
 **User Persona:** The Admin (Orbit-Admin)
-**Story Statement:** As an Admin, I want all real-time state updates to be transmitted in binary MessagePack format so that we minimize bandwidth usage and maintain the sub-50ms latency budget.
+**Story Statement:** As an Admin, I want all real-time state updates to be transmitted in binary MessagePack format so that we minimize bandwidth usage and maintain a strict sub-10ms delivery target for the Pulse.
 
 #### Acceptance Criteria
 - [ ] Shared `MessagePackSchema` defined for Position, Velocity, Mass, and Price.
 - [ ] Python backend successfully serializes state updates using `msgpack`.
 - [ ] TypeScript frontend successfully deserializes binary payloads in the Web Worker.
-- [ ] Packet size reduction of >40% compared to equivalent JSON payloads verified.
+- [ ] Packet size reduction of >50% compared to equivalent JSON payloads verified.
 
 #### Technical Constraints
-- **Latency:** Serialization/Deserialization overhead must be <2ms per packet.
+- **Latency:** Serialization/Deserialization overhead must be <1ms per packet.
+- **Goal:** Total end-to-end delivery latency (Pulse) target of <10ms.
 - **Protocol:** Enforce binary mode on the WebSocket connection.
 
 ---
@@ -120,18 +121,18 @@ This document breaks down the core Epics into granular, sprint-ready User Storie
 
 ---
 
-### Story 2.3: The Gravity Pipe (WebSocket Sync)
+### Story 2.3: The Pulse Stream (Django Channels to Redis)
 **User Persona:** Jax (The Hunter)
-**Story Statement:** As a Hunter, I want my local "Gravity Well" to be perfectly in sync with the global state so that I'm seeing the most accurate prices and orbital patterns.
+**Story Statement:** As a Hunter, I want the Redis price feed to be streamed directly through Django Channels so that my local Gravity Well reacts instantly to every 'Heartbeat' of the engine.
 
 #### Acceptance Criteria
 - [ ] Django Channels consumer established with "Global Pulse" group broadcasting.
+- [ ] Backend bridging logic connects Redis Pub/Sub (Price Feed) to Channels Groups.
 - [ ] Client successfully handshakes using JWT and transitions to the binary WebSocket stream.
 - [ ] "Lag Compensation" logic in the frontend worker interpolates high-frequency state updates.
-- [ ] System gracefully handles socket disconnects by triggering a `isSyncing` thematic overlay.
 
 #### Technical Constraints
-- **Latency:** End-to-end state propagation (Sync process) must be <50ms.
+- **Latency:** End-to-end state propagation (Redis -> Channels -> Client) must be <10ms.
 - **Reliability:** Auto-reconnect logic with exponential backoff implemented in the client.
 
 ---
@@ -149,6 +150,22 @@ This document breaks down the core Epics into granular, sprint-ready User Storie
 #### Technical Constraints
 - **Accuracy:** Final checkout price must exactly match the Redis `price_current` state at the moment of click.
 - **Thematic:** Use "Temporal Decay" terminology in logs and internal documentation.
+
+---
+
+### Story 2.5: Visual Heartbeat (Glow & Pulse)
+**User Persona:** Jax (The Hunter)
+**Story Statement:** As a Hunter, I want the Physics Orbs to 'glow' or 'pulse' when a price update hits them so that I can visually feel the price flux.
+
+#### Acceptance Criteria
+- [ ] `VisualHeartbeat` component/primitive created for Physics Orbs.
+- [ ] GSAP "Glow" animation triggers on every MessagePack `PRICE_UPDATE` event.
+- [ ] Pulse intensity scales with the magnitude of the price shift.
+- [ ] Smooth transition between "Stable" and "Pulsing" states at 60 FPS.
+
+#### Technical Constraints
+- **Performance:** Pulse animations must hit 60 FPS and avoid main-thread jank.
+- **Visuals:** Use hardware-accelerated CSS filters and GSAP `ticker` for synchronization.
 
 ---
 

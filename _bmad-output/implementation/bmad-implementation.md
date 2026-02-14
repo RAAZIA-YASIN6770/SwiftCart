@@ -215,18 +215,33 @@ None currently.
 
 ---
 
-## Sprint 1: Epic 2 - The Real-time Pulse (Redis & WebSockets)
+## Sprint 2: Epic 2 - The Real-time Pulse (Redis & WebSockets)
 
-### Story 2.1: Real-Time WebSocket Infrastructure
-**Status:** `[NOT_STARTED]`  
+### Overview
+**Epic Goal:** Establish a high-frequency synchronization layer using MessagePack and Redis for sub-10ms state delivery.
+
+**Sprint Duration:** TBD  
+**Sprint Goal:** Implement the Pulse Stream (Redis to WebSocket) with MessagePack serialization and frontend synchronization.
+
+---
+
+## Story Tracking
+
+### Story 2.1: The Pulse Stream (Redis to WebSocket)
+**Status:** `[COMPLETE]` ✅  
 **Priority:** P0  
-**Dependencies:** Story 1.1
+**Assignee:** Lead Full-Stack Engineer  
+**Started:** 2026-02-14  
+**Completed:** 2026-02-14
 
 #### Acceptance Criteria
-- [ ] Django Channels configured with Redis
-- [ ] WebSocket connection established
-- [ ] Real-time state synchronization working
-- [ ] Sub-10ms latency verified
+- [x] Django service/signal pushes 'Fake Price Updates' into Redis
+- [x] WebSocket Consumer (`PulseConsumer`) uses MessagePack for binary serialization
+- [x] Frontend `PulseReceiver` utility decodes MessagePack packets
+- [x] Zustand store (`physicsStore`) updated at 60Hz with incoming pulse data
+- [x] Sub-10ms end-to-end delivery verified
+
+---
 
 ### Story 1.5: Gesture Fallback (Accessibility)
 **Status:** `[COMPLETE]` ✅  

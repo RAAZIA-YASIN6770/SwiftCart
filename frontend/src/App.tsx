@@ -3,19 +3,26 @@ import { useWebSocketHealthCheck } from './hooks/useWebSocketHealthCheck';
 import { usePhysicsWorker } from './hooks/usePhysicsWorker';
 import { usePhysicsStore } from './store/physicsStore';
 import { checkPhysicsSupport } from './utils/capabilityDetection';
+import { pulseReceiver } from './utils/pulse-receiver';
 import GravityTest from './components/GravityTest';
 import ProductGrid from './components/ProductGrid';
 import './App.css';
 
 function App() {
-  const { isConnected, latency, sendPing } = useWebSocketHealthCheck(
+  const { isConnected: isHealthConnected, latency, sendPing } = useWebSocketHealthCheck(
     'ws://localhost:8000/ws/health/'
   );
 
-  const { viewMode, setViewMode, isSupported, setIsSupported } = usePhysicsStore();
+  const { viewMode, setViewMode, isSupported, setIsSupported, prices } = usePhysicsStore();
 
   // Initialize Physics Worker
   usePhysicsWorker();
+
+  // Initialize Pulse Receiver (Sprint 2)
+  useEffect(() => {
+    pulseReceiver.connect();
+    return () => pulseReceiver.disconnect();
+  }, []);
 
   // Detection and initialization
   useEffect(() => {
@@ -28,14 +35,14 @@ function App() {
 
   // Send ping every 2 seconds
   useEffect(() => {
-    if (isConnected) {
+    if (isHealthConnected) {
       const interval = setInterval(() => {
         sendPing();
       }, 2000);
 
       return () => clearInterval(interval);
     }
-  }, [isConnected, sendPing]);
+  }, [isHealthConnected, sendPing]);
 
   const toggleMode = () => {
     setViewMode(viewMode === 'PHYSICS' ? 'LIST' : 'PHYSICS');
@@ -65,7 +72,23 @@ function App() {
         </div>
 
         <div className="story-section">
-          <h2>Story 1.5: Gesture Fallback</h2>
+          <h2>Epic 2: The Real-time Pulse</h2>
+          <div className="pulse-monitor" style={{
+            background: 'rgba(0, 255, 255, 0.05)',
+            padding: '15px',
+            borderRadius: '10px',
+            border: '1px solid rgba(0, 255, 255, 0.2)',
+            marginBottom: '20px'
+          }}>
+            <p><strong>Binary Pulse Feed:</strong> {Object.keys(prices).length > 0 ? 'ACTIVE ⚡' : 'WAITING...'}</p>
+            {Object.entries(prices).map(([id, price]) => (
+              <div key={id} className="price-tag" style={{ color: '#00ffff', fontSize: '24px', fontWeight: 'bold' }}>
+                ID: {id.slice(0, 8)} | $ {price.toFixed(2)}
+              </div>
+            ))}
+          </div>
+
+          <h3>Story 1.5: Gesture Fallback</h3>
           <p>
             {isSupported
               ? `Hardware Acceleration: Active | Mode: ${viewMode}`
@@ -81,8 +104,8 @@ function App() {
 
         <div className="health-check">
           <div className="status-indicator">
-            <div className={`status-dot ${isConnected ? 'connected' : 'disconnected'}`} />
-            <span>{isConnected ? 'Pulse Connected' : 'Pulse Disconnected'}</span>
+            <div className={`status-dot ${isHealthConnected ? 'connected' : 'disconnected'}`} />
+            <span>{isHealthConnected ? 'Pulse Connected' : 'Pulse Disconnected'}</span>
           </div>
           {latency !== null && (
             <div className="latency-display">
@@ -92,7 +115,7 @@ function App() {
         </div>
 
         <div className="info">
-          <p>✅ Epic 1: The Physics Foundation - 100% Locked</p>
+          <p>✅ Epic 1: Locked | ⚡ Epic 2: Real-time Pulse Syncing</p>
         </div>
       </header>
     </div>

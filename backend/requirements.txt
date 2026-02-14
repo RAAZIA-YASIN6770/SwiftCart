@@ -3,5 +3,6 @@ djangorestframework==3.14.0
 channels[daphne]==4.0.0
 channels-redis==4.1.0
 redis==5.0.1
-django-cors-headers==4.3.1
+django-psycopg2-binary==2.9.9
 python-dotenv==1.0.0
+msgpack==1.0.7

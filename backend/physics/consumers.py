@@ -69,3 +69,37 @@ class HealthCheckConsumer(AsyncWebsocketConsumer):
                 'message': 'Invalid JSON',
                 'timestamp': time.time()
             }))
+
+class PulseConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for high-frequency binary price pulses
+    Subscribes to 'global_pulse' group
+    """
+    
+    async def connect(self):
+        """Join global_pulse group and accept connection"""
+        self.group_name = "global_pulse"
+        
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
+        
+        await self.accept()
+        
+    async def disconnect(self, close_code):
+        """Leave global_pulse group"""
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
+        
+    async def pulse_message(self, event):
+        """
+        Receive message from group and send binary data to WebSocket
+        """
+        binary_data = event['data']
+        
+        # Send binary message (MessagePack)
+        await self.send(bytes_data=binary_data)
+
