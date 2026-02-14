@@ -81,6 +81,12 @@ class PulseReceiver {
             this.socket = null;
         }
     }
+
+    public send(data: any) {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(data));
+        }
+    }
 }
 
 // Export a singleton instance

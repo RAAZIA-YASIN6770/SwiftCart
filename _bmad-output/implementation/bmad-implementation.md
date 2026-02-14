@@ -256,6 +256,22 @@ None currently.
 
 ---
 
+### Story 2.4: The Price Decay Engine (Interaction-Driven)
+**Status:** `[COMPLETE]` ✅
+**Priority:** P0
+**Dependencies:** Story 2.1, 2.3
+**Started:** 2026-02-14
+**Completed:** 2026-02-14
+
+#### Acceptance Criteria
+- [x] Price decay algorithm implemented in Python (Redis-side).
+- [x] Decayed price updates pushed via WebSocket at <200ms intervals.
+- [x] Visual "Price Glitch" effect triggers on the client when a significant decay threshold is hit.
+- [x] Price floor (70% MSRP) is strictly enforced by the engine.
+- [x] Final checkout price exactly matches the Redis `price_current` state.
+
+---
+
 ### Story 1.5: Gesture Fallback (Accessibility)
 **Status:** `[COMPLETE]` ✅  
 **Priority:** P0  

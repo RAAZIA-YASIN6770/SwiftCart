@@ -24,6 +24,8 @@ const GravityTest: React.FC = () => {
         applyImpulse(id, velocity);
     };
 
+    const prices = usePhysicsStore((state) => state.prices);
+
     return (
         <div
             style={{
@@ -40,7 +42,7 @@ const GravityTest: React.FC = () => {
             }}
         >
             <div style={{ position: 'absolute', top: 10, left: 10, color: '#00ffff', fontFamily: 'monospace', zIndex: 10 }}>
-                Radial Attraction: Enabled | Pulse: Active | Flick: READY
+                Radial Attraction: Enabled | Decay Engine: Active | Price Glitch: READY
             </div>
 
             <GravityWell />
@@ -49,6 +51,8 @@ const GravityTest: React.FC = () => {
                 <FlickableOrb
                     key={body.id}
                     id={body.id}
+                    productId={body.productId}
+                    price={prices[body.productId] || 100.00}
                     position={body.position}
                     radius={body.radius || 20}
                     angle={body.angle}
