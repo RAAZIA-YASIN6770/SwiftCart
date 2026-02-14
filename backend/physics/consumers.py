@@ -5,6 +5,7 @@ Implements ping-pong protocol to verify real-time pulse
 
 import json
 import time
+import redis
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 
@@ -119,4 +120,25 @@ class PulseConsumer(AsyncWebsocketConsumer):
         # Send binary message (MessagePack)
         # Binary format ensures <10ms propagation target
         await self.send(bytes_data=binary_data)
+
+    async def receive(self, text_data=None, bytes_data=None):
+        """
+        Handle incoming messages from the client.
+        Captures 'FLICK' events and increments the interaction counter in Redis.
+        """
+        if text_data:
+            try:
+                data = json.loads(text_data)
+                if data.get('type') == 'FLICK':
+                    product_id = data.get('product_id')
+                    if product_id:
+                        # Increment interaction counter in Redis
+                        # Pattern: sc:prod:hits:{id}
+                        r = redis.Redis(host='localhost', port=6379, db=0)
+                        r.incr(f"sc:prod:hits:{product_id}")
+                        
+                        # Set TTL to ensure keys don't leak if the engine stops
+                        r.expire(f"sc:prod:hits:{product_id}", 60)
+            except Exception:
+                pass
 
