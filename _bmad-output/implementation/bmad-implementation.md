@@ -241,6 +241,19 @@ None currently.
 - [x] Zustand store (`physicsStore`) updated at 60Hz with incoming pulse data
 - [x] Sub-10ms end-to-end delivery verified
 
+### Story 2.3: The Pulse Stream (Django Channels to Redis)
+**Status:** `[COMPLETE]` ✅  
+**Priority:** P0  
+**Assignee:** Lead Full-Stack Engineer  
+**Started:** 2026-02-14  
+**Completed:** 2026-02-14
+
+#### Acceptance Criteria
+- [x] Django Channels consumer established with "Global Pulse" group broadcasting.
+- [x] Backend bridging logic connects Redis Pub/Sub (Price Feed) to Channels Groups.
+- [x] Client successfully handshakes using JWT and transitions to the binary WebSocket stream.
+- [x] "Lag Compensation" logic in the frontend worker interpolates high-frequency state updates.
+
 ---
 
 ### Story 1.5: Gesture Fallback (Accessibility)

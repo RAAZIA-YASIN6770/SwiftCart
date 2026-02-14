@@ -92,8 +92,18 @@ function loop(time: number) {
         bodies.forEach(body => {
             if (body.isStatic) return;
 
-            // Apply dragging: if a body is being dragged, we update its position and velocity manually
-            // This is handled by main thread via UPDATE_BODY
+            // [STORY 2.3] Lag Compensation: Simplified Interpolation
+            // If we have remote state, we nudge the body towards it smoothly
+            // rather than snapping. This ensures 60 FPS smoothness even with jitter.
+            if ((body as any).remoteTarget) {
+                const target = (body as any).remoteTarget;
+                const lerpFactor = 0.1; // 10% towards target per frame
+
+                Matter.Body.setPosition(body, {
+                    x: body.position.x + (target.x - body.position.x) * lerpFactor,
+                    y: body.position.y + (target.y - body.position.y) * lerpFactor
+                });
+            }
 
             const dx = attrX - body.position.x;
             const dy = attrY - body.position.y;
@@ -269,6 +279,19 @@ self.onmessage = (event: MessageEvent) => {
             break;
         case 'UPDATE_BODY':
             updateBody(payload);
+            break;
+        case 'PULSE_SYNC':
+            // Fast-path synchronization for high-frequency pulses (Sprint 2.3)
+            const bodiesSync = Matter.Composite.allBodies(world || { bodies: [] } as any);
+            const targetBody = bodiesSync.find(b => b.label === payload.id);
+            if (targetBody) {
+                // Set the remote target for interpolation in the loop
+                (targetBody as any).remoteTarget = payload.pos;
+                // Optionally nudge velocity too for better prediction
+                if (payload.vel) {
+                    Matter.Body.setVelocity(targetBody, payload.vel);
+                }
+            }
             break;
         default:
             console.warn(`[Physics Worker] Unknown message type: ${type}`);
