@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  
+
   // Optimized for 60 FPS performance
   build: {
     target: 'esnext',
@@ -19,7 +19,7 @@ export default defineConfig({
       }
     }
   },
-  
+
   // Fast HMR for development
   server: {
     port: 5173,
@@ -28,15 +28,15 @@ export default defineConfig({
       overlay: true
     }
   },
-  
+
   // Optimize dependencies
   optimizeDeps: {
     include: ['react', 'react-dom', 'zustand', 'matter-js', 'socket.io-client', 'three']
   },
-  
+
   // Worker support for physics calculations
   worker: {
     format: 'es',
-    plugins: []
+    plugins: () => []
   }
 })
