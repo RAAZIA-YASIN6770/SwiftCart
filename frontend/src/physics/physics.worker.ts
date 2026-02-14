@@ -11,7 +11,7 @@ import Matter from 'matter-js';
 // Physics engine instance
 let engine: Matter.Engine | null = null;
 let world: Matter.World | null = null;
-let runner: Matter.Runner | null = null;
+
 
 // Physics configuration for anti-gravity
 const PHYSICS_CONFIG = {
@@ -35,11 +35,7 @@ function initPhysics() {
 
     world = engine.world;
 
-    // Create runner for 60 FPS
-    runner = Matter.Runner.create({
-        delta: PHYSICS_CONFIG.delta,
-        isFixed: true
-    });
+
 
     console.log('[Physics Worker] Engine initialized with anti-gravity');
 
@@ -79,7 +75,7 @@ function updatePhysics(delta: number) {
 /**
  * Add a body to the physics world
  */
-function addBody(bodyConfig: any) {
+function addBody(bodyConfig: { type: string; x: number; y: number; width?: number; height?: number; radius?: number; options?: any }) {
     if (!world) {
         return { type: 'ERROR', message: 'World not initialized' };
     }
@@ -89,6 +85,9 @@ function addBody(bodyConfig: any) {
     // Create body based on type
     switch (bodyConfig.type) {
         case 'rectangle':
+            if (!bodyConfig.width || !bodyConfig.height) {
+                return { type: 'ERROR', message: 'Rectangle body requires width and height' };
+            }
             body = Matter.Bodies.rectangle(
                 bodyConfig.x,
                 bodyConfig.y,
@@ -98,6 +97,9 @@ function addBody(bodyConfig: any) {
             );
             break;
         case 'circle':
+            if (!bodyConfig.radius) {
+                return { type: 'ERROR', message: 'Circle body requires radius' };
+            }
             body = Matter.Bodies.circle(
                 bodyConfig.x,
                 bodyConfig.y,
