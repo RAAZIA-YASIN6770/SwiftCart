@@ -287,6 +287,20 @@ self.onmessage = (event: MessageEvent) => {
             if (targetBody) {
                 // Set the remote target for interpolation in the loop
                 (targetBody as any).remoteTarget = payload.pos;
+
+                // [COMMUNAL MASS] Update mass and scale
+                if (payload.mass && payload.mass !== targetBody.mass) {
+                    const currentMass = targetBody.mass;
+                    const newMass = payload.mass;
+
+                    // Scale factor based on mass cube root (volume-like scaling)
+                    // If mass is 1.0, scale is 1.0. If mass is 2.0, scale is ~1.26.
+                    const scaleFactor = Math.pow(newMass / currentMass, 1 / 3);
+
+                    Matter.Body.setMass(targetBody, newMass);
+                    Matter.Body.scale(targetBody, scaleFactor, scaleFactor);
+                }
+
                 // Optionally nudge velocity too for better prediction
                 if (payload.vel) {
                     Matter.Body.setVelocity(targetBody, payload.vel);

@@ -14,10 +14,12 @@ def broadcast_price_pulse(product_id, price, position=None, velocity=None):
     # p: Current Price
     # pos: Position {x, y}
     # vel: Velocity {x, y}
+    # m: Mass
     # t: Server Timestamp
     payload = {
         'id': product_id,
         'p': float(price),
+        'm': 1.0, # Initial base mass
         'pos': position or {'x': 0, 'y': 0},
         'vel': velocity or {'x': 0, 'y': 0},
         't': time.time()

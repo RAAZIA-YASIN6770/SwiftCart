@@ -14,6 +14,8 @@ class Command(BaseCommand):
         msrp = options['msrp']
         interval = options['interval']
         floor_price = msrp * 0.70
+        base_mass = 1.0
+        mass_multiplier = 0.2 # 0.2 unit of mass per hit
         
         self.stdout.write(self.style.SUCCESS(f"Starting Price Decay Engine..."))
         self.stdout.write(f"MSRP: {msrp} | Floor: {floor_price} | Interval: {interval}s")
@@ -54,20 +56,24 @@ class Command(BaseCommand):
                 # 4. Enforce 70% Floor
                 if new_price < floor_price:
                     new_price = floor_price
+                
+                # 4b. Calculate Communal Mass
+                # Mass grows with hits, decays slowly back to base_mass (10% decay per interval)
+                current_mass_raw = r.get(f"sc:prod:mass:{product_id}")
+                current_mass = float(current_mass_raw) if current_mass_raw else base_mass
+                new_mass = current_mass + (hits * mass_multiplier)
+                new_mass = max(base_mass, new_mass - (new_mass - base_mass) * 0.05)
                     
                 # 5. Update Redis State
                 r.set(f"sc:prod:price:{product_id}", new_price)
+                r.set(f"sc:prod:mass:{product_id}", new_mass)
                 
-                # 6. Publish Pulse (Minimal payload for bridge_pulse.py)
-                # Note: bridge_pulse.py expects MessagePack usually, but we can send JSON if the bridge handles it,
-                # or we just push the raw update. Since bridge_pulse.py forwards directly, 
-                # we should probably send what the bridge expects. 
-                # bridge_pulse.py forwards binary_data = message['data']
-                # Let's use MessagePack for consistency if possible, or just JSON if that's what's supported.
+                # 6. Publish Pulse
                 import msgpack
                 payload = {
                     'id': product_id,
                     'p': round(new_price, 2),
+                    'm': round(new_mass, 2), # Communal Mass
                     'hits': hits,
                     't': time.time()
                 }
@@ -75,7 +81,7 @@ class Command(BaseCommand):
                 r.publish('price_pulses', binary_data)
                 
                 if hits > 0 or abs(new_price - current_price) > 0.001:
-                    self.stdout.write(f"Price Update: {product_id} -> ${new_price:.2f} (Hits: {hits})")
+                    self.stdout.write(f"Price Update: {product_id} -> ${new_price:.2f} | Mass: {new_mass:.2f} (Hits: {hits})")
                 
                 time.sleep(interval)
                 

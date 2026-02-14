@@ -35,6 +35,7 @@ class PulseReceiver {
                 const decoded = decode(event.data) as {
                     id: string,
                     p: number,
+                    m?: number, // Mass
                     pos: { x: number, y: number },
                     vel: { x: number, y: number },
                     t: number
@@ -43,9 +44,17 @@ class PulseReceiver {
                 // Update the global store (Price)
                 usePhysicsStore.getState().updatePrice(decoded.id, decoded.p);
 
-                // Forward Position/Velocity to Physics Worker for Interpolation
-                // We'll use a shared worker reference or a custom event
-                window.dispatchEvent(new CustomEvent('pulse_sync', { detail: decoded }));
+                const mass = decoded.m || 1.0;
+
+                // Forward Position/Velocity/Mass to Physics Worker for Interpolation
+                window.dispatchEvent(new CustomEvent('pulse_sync', {
+                    detail: {
+                        id: decoded.id,
+                        pos: decoded.pos,
+                        vel: decoded.vel,
+                        mass: mass
+                    }
+                }));
 
                 // Performance Note: 
                 // In a production environment with dozens of bodies, we might queue 

@@ -15,10 +15,15 @@ interface PhysicsStore {
     previousPrices: Record<string, number>; // Last Price (for deltas)
     viewMode: 'PHYSICS' | 'LIST';
     isSupported: boolean;
+    reducedMotion: boolean;
+    failedFlickCount: Record<number, number>; // bodyId -> failure count
     setBodies: (bodies: BodyState[]) => void;
     updatePrice: (id: string, price: number) => void;
     setViewMode: (mode: 'PHYSICS' | 'LIST') => void;
     setIsSupported: (supported: boolean) => void;
+    setReducedMotion: (reduced: boolean) => void;
+    recordFlickFailure: (bodyId: number) => void;
+    resetFlickFailure: (bodyId: number) => void;
 }
 
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
@@ -27,6 +32,8 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
     previousPrices: {},
     viewMode: 'PHYSICS',
     isSupported: true,
+    reducedMotion: false,
+    failedFlickCount: {},
     setBodies: (bodyInfos) => {
         const bodiesMap: Record<number, BodyState> = {};
         bodyInfos.forEach((body) => {
@@ -40,4 +47,16 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
     })),
     setViewMode: (viewMode) => set({ viewMode }),
     setIsSupported: (isSupported) => set({ isSupported }),
+    setReducedMotion: (reducedMotion) => set({ reducedMotion }),
+    recordFlickFailure: (bodyId) => set((state) => ({
+        failedFlickCount: {
+            ...state.failedFlickCount,
+            [bodyId]: (state.failedFlickCount[bodyId] || 0) + 1
+        }
+    })),
+    resetFlickFailure: (bodyId) => set((state) => {
+        const newCounts = { ...state.failedFlickCount };
+        delete newCounts[bodyId];
+        return { failedFlickCount: newCounts };
+    }),
 }));
