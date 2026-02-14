@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 interface BodyState {
     id: number;
+    productId: string; // Associated Product UUID
     position: { x: number; y: number };
     angle: number;
     isStatic: boolean;
@@ -10,7 +11,8 @@ interface BodyState {
 
 interface PhysicsStore {
     bodies: Record<number, BodyState>;
-    prices: Record<string, number>; // Product ID -> Current Price
+    prices: Record<string, number>; // Current Price
+    previousPrices: Record<string, number>; // Last Price (for deltas)
     viewMode: 'PHYSICS' | 'LIST';
     isSupported: boolean;
     setBodies: (bodies: BodyState[]) => void;
@@ -22,6 +24,7 @@ interface PhysicsStore {
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
     bodies: {},
     prices: {},
+    previousPrices: {},
     viewMode: 'PHYSICS',
     isSupported: true,
     setBodies: (bodyInfos) => {
@@ -32,6 +35,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         set({ bodies: bodiesMap });
     },
     updatePrice: (id, price) => set((state) => ({
+        previousPrices: { ...state.previousPrices, [id]: state.prices[id] || price },
         prices: { ...state.prices, [id]: price }
     })),
     setViewMode: (viewMode) => set({ viewMode }),
