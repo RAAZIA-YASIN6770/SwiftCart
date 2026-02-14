@@ -11,13 +11,13 @@ import Matter from 'matter-js';
 // Physics engine instance
 let engine: Matter.Engine | null = null;
 let world: Matter.World | null = null;
+let lastTimestamp = 0;
 
-
-// Physics configuration for anti-gravity
+// Physics configuration
 const PHYSICS_CONFIG = {
     gravity: {
         x: 0,
-        y: -0.5, // Negative gravity for anti-gravity effect
+        y: 1, // Standard gravity for the initial test
         scale: 0.001
     },
     fps: 60,
@@ -28,16 +28,26 @@ const PHYSICS_CONFIG = {
  * Initialize the physics engine
  */
 function initPhysics() {
-    // Create engine with custom gravity
+    // Create engine
     engine = Matter.Engine.create({
         gravity: PHYSICS_CONFIG.gravity
     });
 
     world = engine.world;
 
+    // Add a ground plane for the gravity test
+    const ground = Matter.Bodies.rectangle(400, 580, 810, 60, { isStatic: true });
+    Matter.World.add(world, [ground]);
 
+    // Add a falling box
+    const box = Matter.Bodies.rectangle(400, 200, 80, 80);
+    Matter.World.add(world, [box]);
 
-    console.log('[Physics Worker] Engine initialized with anti-gravity');
+    console.log('[Physics Worker] Engine initialized');
+
+    // Start the animation loop
+    lastTimestamp = performance.now();
+    requestAnimationFrame(loop);
 
     return {
         type: 'PHYSICS_INITIALIZED',
@@ -46,30 +56,36 @@ function initPhysics() {
 }
 
 /**
- * Update physics simulation
+ * Main physics loop running at 60 FPS
  */
-function updatePhysics(delta: number) {
-    if (!engine) {
-        return { type: 'ERROR', message: 'Engine not initialized' };
+function loop(time: number) {
+    if (!engine) return;
+
+    const delta = time - lastTimestamp;
+
+    // Target 60 FPS (approx 16.6ms)
+    if (delta >= PHYSICS_CONFIG.delta) {
+        Matter.Engine.update(engine, PHYSICS_CONFIG.delta);
+
+        // Extract body positions for rendering
+        const bodies = Matter.Composite.allBodies(world!);
+        const bodyStates = bodies.map(body => ({
+            id: body.id,
+            position: { x: body.position.x, y: body.position.y },
+            angle: body.angle,
+            isStatic: body.isStatic
+        }));
+
+        self.postMessage({
+            type: 'PHYSICS_UPDATE',
+            bodies: bodyStates,
+            timestamp: time
+        });
+
+        lastTimestamp = time;
     }
 
-    // Run physics step
-    Matter.Engine.update(engine, delta);
-
-    // Extract body positions for rendering
-    const bodies = Matter.Composite.allBodies(world!);
-    const bodyStates = bodies.map(body => ({
-        id: body.id,
-        position: { x: body.position.x, y: body.position.y },
-        angle: body.angle,
-        velocity: { x: body.velocity.x, y: body.velocity.y }
-    }));
-
-    return {
-        type: 'PHYSICS_UPDATE',
-        bodies: bodyStates,
-        timestamp: Date.now()
-    };
+    requestAnimationFrame(loop);
 }
 
 /**
@@ -82,28 +98,21 @@ function addBody(bodyConfig: { type: string; x: number; y: number; width?: numbe
 
     let body: Matter.Body;
 
-    // Create body based on type
     switch (bodyConfig.type) {
         case 'rectangle':
-            if (!bodyConfig.width || !bodyConfig.height) {
-                return { type: 'ERROR', message: 'Rectangle body requires width and height' };
-            }
             body = Matter.Bodies.rectangle(
                 bodyConfig.x,
                 bodyConfig.y,
-                bodyConfig.width,
-                bodyConfig.height,
+                bodyConfig.width || 50,
+                bodyConfig.height || 50,
                 bodyConfig.options
             );
             break;
         case 'circle':
-            if (!bodyConfig.radius) {
-                return { type: 'ERROR', message: 'Circle body requires radius' };
-            }
             body = Matter.Bodies.circle(
                 bodyConfig.x,
                 bodyConfig.y,
-                bodyConfig.radius,
+                bodyConfig.radius || 25,
                 bodyConfig.options
             );
             break;
@@ -119,67 +128,20 @@ function addBody(bodyConfig: { type: string; x: number; y: number; width?: numbe
     };
 }
 
-/**
- * Remove a body from the physics world
- */
-function removeBody(bodyId: number) {
-    if (!world) {
-        return { type: 'ERROR', message: 'World not initialized' };
-    }
-
-    const body = Matter.Composite.get(world, bodyId, 'body') as Matter.Body;
-    if (body) {
-        Matter.World.remove(world, body);
-        return { type: 'BODY_REMOVED', bodyId };
-    }
-
-    return { type: 'ERROR', message: `Body not found: ${bodyId}` };
-}
-
-/**
- * Apply force to a body
- */
-function applyForce(bodyId: number, force: { x: number; y: number }) {
-    if (!world) {
-        return { type: 'ERROR', message: 'World not initialized' };
-    }
-
-    const body = Matter.Composite.get(world, bodyId, 'body') as Matter.Body;
-    if (body) {
-        Matter.Body.applyForce(body, body.position, force);
-        return { type: 'FORCE_APPLIED', bodyId };
-    }
-
-    return { type: 'ERROR', message: `Body not found: ${bodyId}` };
-}
-
 // Message handler
 self.onmessage = (event: MessageEvent) => {
     const { type, payload } = event.data;
 
-    let response;
-
     switch (type) {
         case 'INIT':
-            response = initPhysics();
-            break;
-        case 'UPDATE':
-            response = updatePhysics(payload.delta);
+            initPhysics();
             break;
         case 'ADD_BODY':
-            response = addBody(payload);
-            break;
-        case 'REMOVE_BODY':
-            response = removeBody(payload.bodyId);
-            break;
-        case 'APPLY_FORCE':
-            response = applyForce(payload.bodyId, payload.force);
+            addBody(payload);
             break;
         default:
-            response = { type: 'ERROR', message: `Unknown message type: ${type}` };
+            console.warn(`[Physics Worker] Unknown message type: ${type}`);
     }
-
-    self.postMessage(response);
 };
 
 // Export for TypeScript
