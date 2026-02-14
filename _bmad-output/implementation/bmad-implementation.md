@@ -171,7 +171,7 @@ None currently.
 ---
 
 ### Story 1.2: Physics Engine Core
-**Status:** `[NOT_STARTED]`  
+**Status:** `[IN_PROGRESS]`  
 **Priority:** P0  
 **Dependencies:** Story 1.1
 
