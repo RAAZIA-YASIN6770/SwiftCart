@@ -64,7 +64,8 @@ function App() {
         <div className="info">
           <h3>Implementation Progress</h3>
           <p>✅ Story 1.1: Project Manifold Initialization</p>
-          <p>⏳ Story 1.2: Physics Engine Core (Verification In Progress)</p>
+          <p>✅ Story 1.2: Physics Engine Core</p>
+          <p>⏳ Story 1.3: The Gravity Well (Verification In Progress)</p>
         </div>
       </header>
     </div>

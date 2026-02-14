@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePhysicsStore } from '../store/physicsStore';
+import GravityWell from './GravityWell';
 
 const GravityTest: React.FC = () => {
     const bodies = usePhysicsStore((state) => state.bodies);
@@ -10,16 +11,19 @@ const GravityTest: React.FC = () => {
                 position: 'relative',
                 width: '800px',
                 height: '600px',
-                backgroundColor: '#111',
+                backgroundColor: '#050510', // Darker space-like background
                 border: '2px solid #333',
                 margin: '20px auto',
                 overflow: 'hidden',
                 borderRadius: '8px',
+                boxShadow: '0 0 50px rgba(0, 255, 255, 0.1)',
             }}
         >
-            <div style={{ position: 'absolute', top: 10, left: 10, color: '#0f0', fontFamily: 'monospace' }}>
-                Physics Worker: 60 FPS | Zustand Sync: Active
+            <div style={{ position: 'absolute', top: 10, left: 10, color: '#00ffff', fontFamily: 'monospace', zIndex: 10 }}>
+                Radial Attraction: Enabled | Pulse: Active
             </div>
+
+            <GravityWell />
 
             {Object.values(bodies).map((body) => (
                 <div
@@ -28,12 +32,13 @@ const GravityTest: React.FC = () => {
                         position: 'absolute',
                         left: `${body.position.x}px`,
                         top: `${body.position.y}px`,
-                        width: body.isStatic ? '810px' : '80px',
-                        height: body.isStatic ? '60px' : '80px',
-                        backgroundColor: body.isStatic ? '#555' : '#00aaff',
+                        width: `${(body.radius || 20) * 2}px`,
+                        height: `${(body.radius || 20) * 2}px`,
+                        backgroundColor: '#00aaff',
+                        borderRadius: '50%',
                         transform: `translate(-50%, -50%) rotate(${body.angle}rad)`,
-                        boxShadow: body.isStatic ? 'none' : '0 0 20px rgba(0, 170, 255, 0.5)',
-                        border: body.isStatic ? '1px solid #777' : '1px solid #00ffff',
+                        boxShadow: '0 3px 10px rgba(0, 170, 255, 0.4)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
                     }}
                 />
             ))}

@@ -185,7 +185,24 @@ None currently.
 
 ---
 
-### Story 1.3: Real-Time WebSocket Infrastructure
+### Story 1.3: The Gravity Well (Physics Container)
+**Status:** `[COMPLETE]` ✅  
+**Priority:** P0  
+**Dependencies:** Story 1.1, 1.2
+**Started:** 2026-02-14  
+**Completed:** 2026-02-14
+
+#### Acceptance Criteria
+- [x] Central force logic implemented in physics worker
+- [x] Pull strength follows Inverse Square Law behavior
+- [x] GravityWell component pulses on "capture"
+- [x] Air friction and damping tuned for orbital stability
+
+---
+
+## Sprint 1: Epic 2 - The Real-time Pulse (Redis & WebSockets)
+
+### Story 2.1: Real-Time WebSocket Infrastructure
 **Status:** `[NOT_STARTED]`  
 **Priority:** P0  
 **Dependencies:** Story 1.1
@@ -202,10 +219,10 @@ None currently.
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Stories Completed | 3 | 2 | 🟡 |
+| Stories Completed | 3 | 3 | 🟢 |
 | Stories In Progress | 1 | 0 | 🟢 |
 | Blockers | 0 | 0 | 🟢 |
-| Sprint Progress | 100% | 66% | 🟡 |
+| Sprint Progress | 100% | 100% | 🟢 |
 
 ---
 
@@ -214,7 +231,9 @@ None currently.
 ### 2026-02-14
 **Completed:**
 - Implementation tracking system initialized
-- Technical scaffold for Story 1.1 drafted
+- Story 1.1: Project Manifold Initialization
+- Story 1.2: Physics Engine Core
+- Story 1.3: The Gravity Well
 
 **In Progress:**
 - Story 1.1: Project Manifold Initialization
