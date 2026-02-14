@@ -42,14 +42,19 @@ function initPhysics() {
     world = engine.world;
 
     // Add multiple orbital objects
+    const mockProductIds = [
+        'pro_001_nebula', 'pro_002_pulsar', 'pro_003_void', 'pro_004_quasar', 'pro_005_nova'
+    ];
+
     for (let i = 0; i < 15; i++) {
         const x = Math.random() * 800;
         const y = Math.random() * 600;
         const radius = 10 + Math.random() * 20;
 
         const body = Matter.Bodies.circle(x, y, radius, {
-            frictionAir: 0.02, // Higher friction to help objects settle
-            restitution: 0.5,  // Bounciness
+            frictionAir: 0.02,
+            restitution: 0.5,
+            label: mockProductIds[i % mockProductIds.length] || `pro_gen_${i}`,
             render: {
                 fillStyle: '#00aaff'
             }
@@ -115,6 +120,7 @@ function loop(time: number) {
         // Extract body states
         const bodyStates = bodies.map(body => ({
             id: body.id,
+            productId: body.label,
             position: { x: body.position.x, y: body.position.y },
             velocity: { x: body.velocity.x, y: body.velocity.y },
             angle: body.angle,
