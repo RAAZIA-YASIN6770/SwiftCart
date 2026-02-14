@@ -1,7 +1,8 @@
 import React from 'react';
-import gsap from 'gsap';
 import { useGestures } from '../hooks/useGestures';
 import { pulseReceiver } from '../utils/pulse-receiver';
+import { usePhysicsStore } from '../store/physicsStore';
+import VisualHeartbeat from './VisualHeartbeat';
 
 interface FlickableOrbProps {
     id: number;
@@ -30,44 +31,60 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
 }) => {
     const orbRef = React.useRef<HTMLDivElement>(null);
     const lastPrice = React.useRef<number>(price);
+    const { reducedMotion, failedFlickCount, recordFlickFailure, resetFlickFailure } = usePhysicsStore();
 
-    const triggerGlitch = React.useCallback(() => {
-        if (!orbRef.current) return;
+    const failedAttempts = failedFlickCount[id] || 0;
 
-        const tl = gsap.timeline();
-        tl.to(orbRef.current, {
-            filter: 'hue-rotate(90deg) brightness(1.5) contrast(1.2)',
-            duration: 0.05,
-            repeat: 5,
-            yoyo: true,
-            ease: "none",
-        });
-        tl.to(orbRef.current, {
-            clipPath: 'inset(10% 0 20% 0)',
-            x: '+=5',
-            duration: 0.03,
-            repeat: 8,
-            yoyo: true,
-        }, 0);
-        tl.set(orbRef.current, { filter: 'none', clipPath: 'none', x: '0' });
-    }, []);
+    // [COMMUNAL MASS] UI Scaling
+    // The 'radius' prop passed from GravityTest is actually the circleRadius from Matter.js.
+    // So if the worker scales the body, 'radius' will reflect the new size.
 
-    React.useEffect(() => {
-        // Trigger glitch if price drops significantly (or at all for decay feedback)
-        if (price < lastPrice.current) {
-            triggerGlitch();
-        }
-        lastPrice.current = price;
-    }, [price, triggerGlitch]);
+    // Glitch logic now handled by VisualHeartbeat
+
+    // Heartbeat Effect handled externally
 
     const handleFlickInternal = (id: number, velocity: { x: number; y: number }) => {
-        // Send interaction to backend
-        pulseReceiver.send({
-            type: 'FLICK',
-            product_id: productId
-        });
+        const speed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2);
+
+        // Threshold for a "successful" flick (e.g., 5px/frame)
+        if (speed < 5) {
+            recordFlickFailure(id);
+        } else {
+            resetFlickFailure(id);
+            // Send interaction to backend
+            pulseReceiver.send({
+                type: 'FLICK',
+                product_id: productId
+            });
+        }
 
         onFlick(id, velocity);
+    };
+
+    const handleCapture = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        resetFlickFailure(id);
+        // Simulate a perfect flick towards center
+        const rect = orbRef.current?.parentElement?.getBoundingClientRect();
+        if (rect) {
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const dx = centerX - position.x;
+            const dy = centerY - position.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const captureVelocity = {
+                x: (dx / dist) * 15,
+                y: (dy / dist) * 15
+            };
+
+            // Send interaction to backend
+            pulseReceiver.send({
+                type: 'FLICK',
+                product_id: productId
+            });
+
+            onFlick(id, captureVelocity);
+        }
     };
 
     const { bindGesture } = useGestures({
@@ -94,19 +111,47 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
                     : '0 3px 10px rgba(0, 170, 255, 0.4)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 zIndex: isDragging ? 20 : 5,
-                transition: isDragging ? 'none' : 'background-color 0.2s, box-shadow 0.2s',
+                transition: reducedMotion ? 'none' : (isDragging ? 'none' : 'background-color 0.2s, box-shadow 0.2s'),
                 pointerEvents: 'auto',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
                 fontWeight: 'bold',
-                fontSize: '10px',
+                fontSize: `${Math.max(8, radius / 2)}px`,
                 fontFamily: 'monospace',
-                userSelect: 'none'
+                userSelect: 'none',
+                overflow: 'visible'
             }}
         >
-            ${price.toFixed(2)}
+            <VisualHeartbeat price={price} previousPrice={lastPrice.current} reducedMotion={reducedMotion}>
+                ${price.toFixed(2)}
+            </VisualHeartbeat>
+
+            {failedAttempts >= 2 && (
+                <button
+                    onClick={handleCapture}
+                    style={{
+                        position: 'absolute',
+                        top: '110%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        padding: '4px 8px',
+                        backgroundColor: '#ff4400',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '9px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+                        zIndex: 100
+                    }}
+                >
+                    CAPTURE
+                </button>
+            )}
         </div>
     );
 };

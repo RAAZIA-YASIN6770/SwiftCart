@@ -4,6 +4,7 @@ import { usePhysicsWorker } from './hooks/usePhysicsWorker';
 import { usePhysicsStore } from './store/physicsStore';
 import { checkPhysicsSupport } from './utils/capabilityDetection';
 import { pulseReceiver } from './utils/pulse-receiver';
+import { useAccessibility } from './hooks/useAccessibility';
 import GravityTest from './components/GravityTest';
 import ProductGrid from './components/ProductGrid';
 import './App.css';
@@ -13,7 +14,13 @@ function App() {
     'ws://localhost:8000/ws/health/'
   );
 
-  const { viewMode, setViewMode, isSupported, setIsSupported, prices } = usePhysicsStore();
+  const { viewMode, setViewMode, isSupported, setIsSupported, prices, setReducedMotion } = usePhysicsStore();
+  const { reducedMotion } = useAccessibility();
+
+  // Sync accessibility state to store
+  useEffect(() => {
+    setReducedMotion(reducedMotion);
+  }, [reducedMotion, setReducedMotion]);
 
   // Initialize Physics Worker
   usePhysicsWorker();
