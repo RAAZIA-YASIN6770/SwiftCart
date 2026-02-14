@@ -200,6 +200,21 @@ None currently.
 
 ---
 
+### Story 1.4: Tactile Flick & Orbital Capture
+**Status:** `[COMPLETE]` ✅  
+**Priority:** P0  
+**Dependencies:** Story 1.1, 1.2, 1.3
+**Started:** 2026-02-14  
+**Completed:** 2026-02-14
+
+#### Acceptance Criteria
+- [x] Pointer events capture "Flick" velocity (magnitude and direction)
+- [x] Flicked items transition smoothly from linear velocity into "Orbital Capture"
+- [x] Physics worker updated with `APPLY_IMPULSE` and `UPDATE_BODY` handlers
+- [x] Orbital snapping logic implements circular orbit synchronization
+
+---
+
 ## Sprint 1: Epic 2 - The Real-time Pulse (Redis & WebSockets)
 
 ### Story 2.1: Real-Time WebSocket Infrastructure
@@ -219,8 +234,8 @@ None currently.
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Stories Completed | 3 | 3 | 🟢 |
-| Stories In Progress | 1 | 0 | 🟢 |
+| Stories Completed | 4 | 4 | 🟢 |
+| Stories In Progress | 0 | 0 | 🟢 |
 | Blockers | 0 | 0 | 🟢 |
 | Sprint Progress | 100% | 100% | 🟢 |
 
@@ -234,6 +249,7 @@ None currently.
 - Story 1.1: Project Manifold Initialization
 - Story 1.2: Physics Engine Core
 - Story 1.3: The Gravity Well
+- Story 1.4: Tactile Flick & Orbital Capture
 
 **In Progress:**
 - Story 1.1: Project Manifold Initialization

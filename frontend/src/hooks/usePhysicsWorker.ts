@@ -38,5 +38,13 @@ export const usePhysicsWorker = () => {
         workerRef.current?.postMessage({ type: 'ADD_BODY', payload });
     };
 
-    return { addBody };
+    const applyImpulse = (bodyId: number, impulse: { x: number; y: number }) => {
+        workerRef.current?.postMessage({ type: 'APPLY_IMPULSE', payload: { bodyId, impulse } });
+    };
+
+    const updateBody = (bodyId: number, update: any) => {
+        workerRef.current?.postMessage({ type: 'UPDATE_BODY', payload: { bodyId, update } });
+    };
+
+    return { addBody, applyImpulse, updateBody };
 };
