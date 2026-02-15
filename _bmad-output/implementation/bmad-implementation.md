@@ -183,11 +183,27 @@
 
 ---
 
+### Story 3.2: Threshold Escalation Logic
+**Status:** `[COMPLETE]` ✅  
+**Priority:** P0  
+**Assignee:** Lead Full-Stack Engineer  
+**Started:** 2026-02-15  
+**Completed:** 2026-02-15
+
+#### Acceptance Criteria
+- [x] Backend `decay_engine.py` calculates instability based on stock thresholds (20% -> 0.2, 10% -> 0.5, 5% -> 0.8).
+- [x] 'Stutter' animation (Frame-Skipping) implemented in `glitch.css` using `steps(4)`.
+- [x] Stutter triggers when stock is < 2%.
+- [x] 'Final Desync' (High-frequency jitter 1-3px) applies when stock is exactly 1.
+- [x] Sync verification ensures `instability` and `stock` flow from Redis -> Pulse -> Worker -> UI.
+
+---
+
 ## Sprint Metrics
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Stories Completed | 15 | 11 | 🟡 |
+| Stories Completed | 15 | 12 | 🟡 |
 | Epic 1 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 2 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
-| Epic 3 Progress | 33% | 33% | 🟡 IN PROGRESS |
+| Epic 3 Progress | 66% | 66% | 🟡 IN PROGRESS |

@@ -37,6 +37,7 @@ class PulseReceiver {
                     p: number,
                     m?: number, // Mass
                     ins?: number, // Instability
+                    stk?: number, // Stock (Story 3.2)
                     pos: { x: number, y: number },
                     vel: { x: number, y: number },
                     t: number
@@ -47,15 +48,17 @@ class PulseReceiver {
 
                 const mass = decoded.m || 1.0;
                 const instability = decoded.ins || 0;
+                const stock = decoded.stk !== undefined ? decoded.stk : 100;
 
-                // Forward Position/Velocity/Mass/Instability to Physics Worker for Interpolation
+                // Forward Position/Velocity/Mass/Instability/Stock to Physics Worker for Interpolation
                 window.dispatchEvent(new CustomEvent('pulse_sync', {
                     detail: {
                         id: decoded.id,
                         pos: decoded.pos,
                         vel: decoded.vel,
                         mass: mass,
-                        instability: instability
+                        instability: instability,
+                        stock: stock
                     }
                 }));
 

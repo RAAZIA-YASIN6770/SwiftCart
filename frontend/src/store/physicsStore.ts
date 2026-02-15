@@ -8,6 +8,7 @@ interface BodyState {
     isStatic: boolean;
     radius?: number;
     instability: number; // 0.0 to 1.0 (Redshift intensity)
+    stock: number;
 }
 
 interface PhysicsStore {
@@ -41,7 +42,8 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         bodyInfos.forEach((body) => {
             bodiesMap[body.id] = {
                 ...body,
-                instability: body.instability || 0
+                instability: body.instability || 0,
+                stock: body.stock !== undefined ? body.stock : 100
             };
         });
         set({ bodies: bodiesMap });
