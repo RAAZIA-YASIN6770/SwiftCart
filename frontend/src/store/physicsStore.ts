@@ -10,6 +10,7 @@ interface BodyState {
     radius?: number;
     instability: number; // 0.0 to 1.0 (Redshift intensity)
     stock: number;
+    isPulsing?: boolean; // God Mode Pulse
 }
 
 interface PhysicsStore {
@@ -53,7 +54,8 @@ export const usePhysicsStore = create<PhysicsStore>((set, get) => ({
             bodiesMap[body.id] = {
                 ...body,
                 instability: body.instability || 0,
-                stock: body.stock !== undefined ? body.stock : 100
+                stock: body.stock !== undefined ? body.stock : 100,
+                isPulsing: body.isPulsing || false
             };
         });
         set({ bodies: bodiesMap });

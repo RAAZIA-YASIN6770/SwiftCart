@@ -16,6 +16,7 @@ interface FlickableOrbProps {
     angle: number;
     instability: number;
     stock: number;
+    isPulsing: boolean;
     isDragging: boolean;
     onDragStart: (id: number) => void;
     onDrag: (id: number, pos: { x: number; y: number }) => void;
@@ -31,6 +32,7 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
     angle,
     instability,
     stock,
+    isPulsing,
     isDragging,
     onDragStart,
     onDrag,
@@ -140,15 +142,17 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
                 top: isRewinding ? undefined : `${position.y}px`,
                 width: `${radius * 2}px`,
                 height: `${radius * 2}px`,
-                backgroundColor: isDragging ? '#00ffff' : '#00aaff',
+                backgroundColor: isPulsing ? '#fff' : (isDragging ? '#00ffff' : '#00aaff'),
                 borderRadius: '50%',
                 transform: combinedTransform,
-                boxShadow: isDragging
-                    ? '0 0 20px rgba(0, 255, 255, 0.8)'
-                    : '0 3px 10px rgba(0, 170, 255, 0.4)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                zIndex: isDragging ? 20 : 5,
-                transition: reducedMotion ? 'none' : (isDragging ? 'none' : 'background-color 0.2s, box-shadow 0.2s'),
+                boxShadow: isPulsing
+                    ? '0 0 40px #fff, 0 0 80px rgba(255, 255, 255, 0.4)'
+                    : (isDragging
+                        ? '0 0 20px rgba(0, 255, 255, 0.8)'
+                        : '0 3px 10px rgba(0, 170, 255, 0.4)'),
+                border: isPulsing ? '2px solid #fff' : '1px solid rgba(255, 255, 255, 0.2)',
+                zIndex: isPulsing ? 100 : (isDragging ? 20 : 5),
+                transition: reducedMotion ? 'none' : (isDragging ? 'none' : 'background-color 0.4s, box-shadow 0.4s, transform 0.4s'),
                 pointerEvents: 'auto',
                 display: 'flex',
                 alignItems: 'center',

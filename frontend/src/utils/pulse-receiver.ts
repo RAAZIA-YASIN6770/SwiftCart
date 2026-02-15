@@ -39,7 +39,18 @@ class PulseReceiver {
         this.socket.onmessage = (event: MessageEvent) => {
             try {
                 // Decode binary MessagePack data
-                const decoded = decode(event.data) as {
+                const decoded = decode(event.data) as any;
+
+                // [STORY 6.1] Celestial Update (Admin Operations)
+                if (decoded.type === 'CELESTIAL') {
+                    window.dispatchEvent(new CustomEvent('celestial_update', {
+                        detail: decoded
+                    }));
+                    return;
+                }
+
+                // Standard Price/State Pulse
+                const pDecoded = decoded as {
                     id: string,
                     p: number,
                     m?: number, // Mass
@@ -50,24 +61,26 @@ class PulseReceiver {
                     t: number
                 };
 
-                // Update the global store (Price)
-                usePhysicsStore.getState().updatePrice(decoded.id, decoded.p);
 
-                const mass = decoded.m || 1.0;
-                const instability = decoded.ins || 0;
-                const stock = decoded.stk !== undefined ? decoded.stk : 100;
+                // Update the global store (Price)
+                usePhysicsStore.getState().updatePrice(pDecoded.id, pDecoded.p);
+
+                const mass = pDecoded.m || 1.0;
+                const instability = pDecoded.ins || 0;
+                const stock = pDecoded.stk !== undefined ? pDecoded.stk : 100;
 
                 // Forward Position/Velocity/Mass/Instability/Stock to Physics Worker for Interpolation
                 window.dispatchEvent(new CustomEvent('pulse_sync', {
                     detail: {
-                        id: decoded.id,
-                        pos: decoded.pos,
-                        vel: decoded.vel,
+                        id: pDecoded.id,
+                        pos: pDecoded.pos,
+                        vel: pDecoded.vel,
                         mass: mass,
                         instability: instability,
                         stock: stock
                     }
                 }));
+
 
                 // Performance Note: 
                 // In a production environment with dozens of bodies, we might queue 

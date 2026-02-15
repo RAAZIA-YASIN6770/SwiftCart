@@ -147,7 +147,8 @@ function loop(time: number) {
             isStatic: body.isStatic,
             radius: (body as any).circleRadius, // Matter.js specific
             instability: (body as any).instability || 0,
-            stock: (body as any).stock !== undefined ? (body as any).stock : 100
+            stock: (body as any).stock !== undefined ? (body as any).stock : 100,
+            isPulsing: (body as any).isPulsing || false
         }));
 
         self.postMessage({
@@ -338,6 +339,36 @@ self.onmessage = (event: MessageEvent) => {
             isFrozen = false;
             lastTimestamp = performance.now();
             break;
+        case 'CELESTIAL_UPDATE': {
+            if (payload.g !== undefined) {
+                PHYSICS_CONFIG.attractor.strength = payload.g;
+                console.log('[Physics Worker] Gravity adjusted to', payload.g);
+            }
+            if (payload.pulse && payload.pid) {
+                const b = Matter.Composite.allBodies(world!).find(b => b.label === payload.pid);
+                if (b) {
+                    console.log('[Physics Worker] FORCE PULSE on', payload.pid);
+                    const originalMass = b.mass;
+                    const tripledMass = originalMass * 3;
+
+                    // Triple mass
+                    Matter.Body.setMass(b, tripledMass);
+                    // Triple "Visual size" (approx 1.44x radius scale for 3x mass/volume)
+                    Matter.Body.scale(b, 1.44, 1.44);
+                    (b as any).isPulsing = true;
+
+                    // The glow is handled on the main thread via state broadcast
+
+                    // Temp highlight: Reset after 5s
+                    setTimeout(() => {
+                        Matter.Body.setMass(b, originalMass);
+                        Matter.Body.scale(b, 1 / 1.44, 1 / 1.44);
+                        (b as any).isPulsing = false;
+                    }, 5000);
+                }
+            }
+            break;
+        }
         default:
             console.warn(`[Physics Worker] Unknown message type: ${type}`);
     }
