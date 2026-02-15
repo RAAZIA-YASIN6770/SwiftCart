@@ -3,6 +3,7 @@ import { useGestures } from '../hooks/useGestures';
 import { pulseReceiver } from '../utils/pulse-receiver';
 import { usePhysicsStore } from '../store/physicsStore';
 import VisualHeartbeat from './VisualHeartbeat';
+import '../styles/glitch.css';
 
 interface FlickableOrbProps {
     id: number;
@@ -11,6 +12,7 @@ interface FlickableOrbProps {
     position: { x: number; y: number };
     radius: number;
     angle: number;
+    instability: number;
     isDragging: boolean;
     onDragStart: (id: number) => void;
     onDrag: (id: number, pos: { x: number; y: number }) => void;
@@ -24,6 +26,7 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
     position,
     radius,
     angle,
+    instability,
     isDragging,
     onDragStart,
     onDrag,
@@ -124,9 +127,33 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
                 overflow: 'visible'
             }}
         >
-            <VisualHeartbeat price={price} previousPrice={lastPrice.current} reducedMotion={reducedMotion}>
-                ${price.toFixed(2)}
-            </VisualHeartbeat>
+            <div
+                className={`glitch-container ${instability > 0 ? 'glitch-active' : ''}`}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    '--glitch-intensity': instability
+                } as React.CSSProperties}
+            >
+                <img
+                    src={`https://api.dicebear.com/7.x/identicon/svg?seed=${productId}`}
+                    className="glitch-image"
+                    alt="Product"
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
+            </div>
+
+            <div className="orb-ui-overlay">
+                <VisualHeartbeat price={price} previousPrice={lastPrice.current} reducedMotion={reducedMotion}>
+                    ${price.toFixed(2)}
+                </VisualHeartbeat>
+            </div>
 
             {failedAttempts >= 2 && (
                 <button

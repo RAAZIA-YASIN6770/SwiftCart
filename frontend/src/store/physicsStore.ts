@@ -7,6 +7,7 @@ interface BodyState {
     angle: number;
     isStatic: boolean;
     radius?: number;
+    instability: number; // 0.0 to 1.0 (Redshift intensity)
 }
 
 interface PhysicsStore {
@@ -18,6 +19,7 @@ interface PhysicsStore {
     reducedMotion: boolean;
     failedFlickCount: Record<number, number>; // bodyId -> failure count
     setBodies: (bodies: BodyState[]) => void;
+    setInstability: (bodyId: number, instability: number) => void;
     updatePrice: (id: string, price: number) => void;
     setViewMode: (mode: 'PHYSICS' | 'LIST') => void;
     setIsSupported: (supported: boolean) => void;
@@ -37,10 +39,19 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
     setBodies: (bodyInfos) => {
         const bodiesMap: Record<number, BodyState> = {};
         bodyInfos.forEach((body) => {
-            bodiesMap[body.id] = body;
+            bodiesMap[body.id] = {
+                ...body,
+                instability: body.instability || 0
+            };
         });
         set({ bodies: bodiesMap });
     },
+    setInstability: (bodyId, instability) => set((state) => ({
+        bodies: {
+            ...state.bodies,
+            [bodyId]: { ...state.bodies[bodyId], instability }
+        }
+    })),
     updatePrice: (id, price) => set((state) => ({
         previousPrices: { ...state.previousPrices, [id]: state.prices[id] || price },
         prices: { ...state.prices, [id]: price }

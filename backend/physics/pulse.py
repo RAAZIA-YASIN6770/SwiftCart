@@ -22,6 +22,7 @@ def broadcast_price_pulse(product_id, price, position=None, velocity=None):
         'm': 1.0, # Initial base mass
         'pos': position or {'x': 0, 'y': 0},
         'vel': velocity or {'x': 0, 'y': 0},
+        'ins': 0.0, # Instability (0.0 to 1.0) - Story 3.1
         't': time.time()
     }
     

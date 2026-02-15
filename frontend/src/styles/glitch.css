@@ -1,0 +1,95 @@
+:root {
+    --glitch-intensity: 0;
+    --redshift-primary: #ff003c;
+    --redshift-cyan: #00f3ff;
+    --redshift-magenta: #ff00ff;
+}
+
+.glitch-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.glitch-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: filter 0.2s ease;
+    will-change: filter, transform;
+}
+
+/* Trigger glitch when intensity > 0 */
+.glitch-active .glitch-image {
+    filter: url(#redshift-glitch);
+    animation: glitch-flicker 0.2s infinite;
+}
+
+/* Scanlines effect */
+.glitch-active::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            rgba(0, 0, 0, 0.2),
+            rgba(0, 0, 0, 0.2) 1px,
+            transparent 1px,
+            transparent 2px);
+    pointer-events: none;
+    opacity: var(--glitch-intensity);
+    z-index: 2;
+}
+
+@keyframes glitch-flicker {
+    0% {
+        opacity: 1;
+        transform: translate(0);
+    }
+
+    10% {
+        opacity: 0.8;
+        transform: translate(calc(var(--glitch-intensity) * -2px), calc(var(--glitch-intensity) * 1px));
+    }
+
+    20% {
+        opacity: 1;
+        transform: translate(calc(var(--glitch-intensity) * 2px), 0);
+    }
+
+    30% {
+        opacity: 0.9;
+        transform: translate(0, calc(var(--glitch-intensity) * -1px));
+    }
+
+    40% {
+        opacity: 1;
+        transform: translate(calc(var(--glitch-intensity) * -2px), 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(0);
+    }
+}
+
+/* Masking: Ensure text/buttons stay clean */
+.orb-content {
+    position: relative;
+    z-index: 1;
+}
+
+.orb-ui-overlay {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: auto;
+    /* Ensure readability */
+    text-shadow: 0 0 8px rgba(0, 0, 0, 1), 0 0 3px rgba(0, 0, 0, 1);
+    color: white;
+    width: 100%;
+    text-align: center;
+}

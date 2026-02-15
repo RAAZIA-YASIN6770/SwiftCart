@@ -163,10 +163,31 @@
 
 ---
 
+---
+
+## Sprint 3: Epic 3 - Dimensional Scarcity (Redshift UI)
+
+### Story 3.1: Glitch Primitives & State Wiring
+**Status:** `[COMPLETE]` ✅  
+**Priority:** P0  
+**Assignee:** Lead Full-Stack Engineer  
+**Started:** 2026-02-15  
+**Completed:** 2026-02-15
+
+#### Acceptance Criteria
+- [x] CSS Glitch primitives (RGB shift, scanlines) created in `glitch.css`.
+- [x] `instability` state pushed from backend (`pulse.py`) via WebSocket.
+- [x] Pulse receiver and Physics worker updated to handle `instability` (0.0 - 1.0).
+- [x] GPU-optimized rendering using CSS variables and SVG filters.
+- [x] Glitch masked to product image; UI elements remain readable.
+
+---
+
 ## Sprint Metrics
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Stories Completed | 10 | 10 | 🟢 |
+| Stories Completed | 15 | 11 | 🟡 |
 | Epic 1 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 2 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
+| Epic 3 Progress | 33% | 33% | 🟡 IN PROGRESS |

@@ -1,13 +1,37 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>frontend</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <svg style="display: none;">
+    <defs>
+      <filter id="redshift-glitch">
+        <!-- Red Channel Shift -->
+        <feOffset in="SourceGraphic" dx="2" dy="0" result="red-shift">
+          <animate attributeName="dx" values="2;-2;1;0" dur="0.1s" repeatCount="indefinite" />
+        </feOffset>
+        <feColorMatrix in="red-shift" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
+          result="red-channel" />
+
+        <!-- Cyan Channel Shift -->
+        <feOffset in="SourceGraphic" dx="-2" dy="0" result="cyan-shift">
+          <animate attributeName="dx" values="-2;2;-1;0" dur="0.15s" repeatCount="indefinite" />
+        </feOffset>
+        <feColorMatrix in="cyan-shift" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"
+          result="cyan-channel" />
+
+        <feBlend in="red-channel" in2="cyan-channel" mode="screen" />
+      </filter>
+    </defs>
+  </svg>
+</body>
+
 </html>
