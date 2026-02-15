@@ -58,11 +58,16 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
 
         const MIN_DURATION = 800; // 800ms minimum duration for warp animation
 
-        // Anti-Gravity Data: Get current price and timestamp
-        // We import the store dynamically or access the global state if possible, 
-        // but importing the hook and using .getState() is standard Zustand.
         const { usePhysicsStore } = await import('./physicsStore');
         const productId = 'pro_001_nebula';
+
+        // Find bodyId for this product
+        const physicsState = usePhysicsStore.getState();
+        const body = Object.values(physicsState.bodies).find(b => b.productId === productId);
+        if (body) {
+            physicsState.captureSnapshot(productId, body.id);
+        }
+
         const currentPrice = usePhysicsStore.getState().prices[productId] || 100.00;
         const timestamp = Date.now();
 

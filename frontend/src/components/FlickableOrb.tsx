@@ -1,8 +1,10 @@
 import React from 'react';
+import { gsap } from 'gsap';
 import { useGestures } from '../hooks/useGestures';
 import { pulseReceiver } from '../utils/pulse-receiver';
 import { usePhysicsStore } from '../store/physicsStore';
 import VisualHeartbeat from './VisualHeartbeat';
+import { useCheckoutStore } from '../store/checkoutStore';
 import '../styles/glitch.css';
 
 interface FlickableOrbProps {
@@ -36,13 +38,38 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
 }) => {
     const orbRef = React.useRef<HTMLDivElement>(null);
     const lastPrice = React.useRef<number>(price);
-    const { reducedMotion, failedFlickCount, recordFlickFailure, resetFlickFailure } = usePhysicsStore();
+    const { reducedMotion, failedFlickCount, recordFlickFailure, resetFlickFailure, snapshots, restoreFromSnapshot } = usePhysicsStore();
+    const { status, setStatus } = useCheckoutStore(); // Watch checkout status
 
     const failedAttempts = failedFlickCount[id] || 0;
+    const [isRewinding, setIsRewinding] = React.useState(false);
+
+    // [STORY 5.2] THEMATIC REWIND
+    React.useEffect(() => {
+        if (status === 'PARADOX' && snapshots[productId]) {
+            setIsRewinding(true);
+            const snapshot = snapshots[productId];
+
+            gsap.to(orbRef.current, {
+                left: `${snapshot.x}px`,
+                top: `${snapshot.y}px`,
+                rotation: `${snapshot.rotation}rad`,
+                duration: 1.5,
+                ease: "power3.inOut",
+                onComplete: () => {
+                    setIsRewinding(false);
+                    restoreFromSnapshot(productId);
+                    setStatus('IDLE'); // Reset checkout status after restoration
+                }
+            });
+        }
+    }, [status, productId, snapshots]);
 
     // [STORY 3.2] Threshold Escalation Visuals
     const isStuttering = stock < 2; // Threshold for frame-skipping (< 2%)
     const isDesyncing = stock === 1;   // The Final Desync
+
+    const combinedTransform = isRewinding ? '' : `translate(-50%, -50%) rotate(${angle}rad)`;
 
     // [COMMUNAL MASS] UI Scaling
     // The 'radius' prop passed from GravityTest is actually the circleRadius from Matter.js.
@@ -106,16 +133,16 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
         <div
             ref={orbRef}
             {...bindGesture(id)}
-            className={`${isDesyncing ? 'glitch-desync' : ''} ${isStuttering ? 'glitch-stutter' : ''}`}
+            className={`${isDesyncing ? 'glitch-desync' : ''} ${isStuttering ? 'glitch-stutter' : ''} ${isRewinding ? 'vhs-rewind' : ''}`}
             style={{
                 position: 'absolute',
-                left: `${position.x}px`,
-                top: `${position.y}px`,
+                left: isRewinding ? undefined : `${position.x}px`,
+                top: isRewinding ? undefined : `${position.y}px`,
                 width: `${radius * 2}px`,
                 height: `${radius * 2}px`,
                 backgroundColor: isDragging ? '#00ffff' : '#00aaff',
                 borderRadius: '50%',
-                transform: `translate(-50%, -50%) rotate(${angle}rad)`,
+                transform: combinedTransform,
                 boxShadow: isDragging
                     ? '0 0 20px rgba(0, 255, 255, 0.8)'
                     : '0 3px 10px rgba(0, 170, 255, 0.4)',
