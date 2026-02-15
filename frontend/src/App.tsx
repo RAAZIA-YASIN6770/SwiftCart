@@ -18,8 +18,13 @@ function App() {
     'ws://localhost:8000/ws/health/'
   );
 
-  const { viewMode, setViewMode, isSupported, setIsSupported, prices, setReducedMotion } = usePhysicsStore();
+  const { viewMode, setViewMode, isSupported, setIsSupported, prices, setReducedMotion, syncSnapshots, recoverSnapshots } = usePhysicsStore();
   const { reducedMotion } = useAccessibility();
+
+  // [STORY 5.3] Session Recovery
+  useEffect(() => {
+    recoverSnapshots();
+  }, [recoverSnapshots]);
 
   // Sync accessibility state to store
   useEffect(() => {
@@ -43,6 +48,15 @@ function App() {
       setViewMode('LIST');
     }
   }, [setIsSupported, setViewMode]);
+
+  // [STORY 5.3] Snapshot Handshake (5-second interval)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      syncSnapshots();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [syncSnapshots]);
 
   // Send ping every 2 seconds
   useEffect(() => {
