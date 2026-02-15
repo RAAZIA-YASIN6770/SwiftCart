@@ -221,7 +221,132 @@
     }
 }
 
+.turbulence-monitor {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.monitor-header {
+    font-size: 10px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chart-bar-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: monospace;
+    font-size: 10px;
+}
+
+.bar-label {
+    width: 60px;
+    color: #fff;
+}
+
+.bar-wrapper {
+    flex-grow: 1;
+}
+
+.bar-rect {
+    fill: #00ff88;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.5));
+    transition: width 0.5s ease-out;
+}
+
+.bar-value {
+    width: 30px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.latency-monitor {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0 5px;
+}
+
+.latency-value {
+    color: #00ff88;
+    font-weight: 700;
+}
+
+/* Alerts Dock */
+.alerts-dock {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10001;
+}
+
+.critical-alert {
+    background: rgba(255, 0, 50, 0.2);
+    color: #ff3366;
+    padding: 12px 20px;
+    border: 1px solid rgba(255, 51, 102, 0.3);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: alert-slide 0.3s ease-out;
+}
+
+@keyframes alert-slide {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-pulse {
+    width: 8px;
+    height: 8px;
+    background: #ff3366;
+    border-radius: 50%;
+    animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 51, 102, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 102, 0);
+    }
+}
+
 .nebula-bg {
+
     position: absolute;
     top: 0;
     left: 0;

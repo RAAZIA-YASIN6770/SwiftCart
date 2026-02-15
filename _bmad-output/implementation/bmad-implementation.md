@@ -321,17 +321,35 @@
 
 ---
 
+### Story 6.2: Orbital Metric Visualization
+**Status:** `[IN_PROGRESS]` 🔄
+**Priority:** P2
+**Assignee:** Lead Full-Stack Engineer
+**Started:** 2026-02-15
+**Completed:** 
+
+#### Acceptance Criteria
+- [x] Redis Sorted Set `sc:prod:interactions` tracks flicks and collisions.
+- [x] `CelestialMetricsView` provides real-time heatmap data.
+- [x] 'Turbulence Monitor' SVG chart implemented in Admin.
+- [x] 'Decay Pulse Latency' monitoring implemented (Server -> WS).
+- [x] 'Stock Implosion' alerts trigger for stock=0 events.
+- [x] Performance isolated to separate async polling.
+
+---
+
 ## Sprint Metrics
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Stories Completed | 16 | 15 | 🟡 |
+| Stories Completed | 17 | 15 | 🟡 |
 | Epic 1 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 2 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 3 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 4 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 5 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
-| Epic 6 Progress | 50% | 0% | 🔄 |
+| Epic 6 Progress | 60% | 30% | 🔄 |
+
 
 ---
 
