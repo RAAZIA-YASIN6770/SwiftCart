@@ -207,3 +207,21 @@
 | Epic 1 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 2 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 3 Progress | 66% | 66% | 🟡 IN PROGRESS |
+
+---
+
+## Sprint 4: Epic 4 - Hyperdrive Fulfillment
+
+### Story 4.1: Warp Coordinate Retrieval (Stripe Init)
+**Status:** `[IN_PROGRESS]` 🔄  
+**Priority:** P0  
+**Assignee:** Lead Full-Stack Engineer  
+**Started:** 2026-02-15  
+**Completed:** TBD
+
+#### Acceptance Criteria
+- [ ] Django view created to generate Stripe `PaymentIntent`.
+- [ ] `payments` app initialized and wired into `settings.py`.
+- [ ] Frontend `checkoutStore.ts` fetches payment intent on mount.
+- [ ] `HyperdriveButton` reflects "Syncing" -> "Ready" states.
+- [ ] Minimal PII compliance verified (tokens only).
