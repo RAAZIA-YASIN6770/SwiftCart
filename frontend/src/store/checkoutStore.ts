@@ -63,6 +63,10 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
 
         // Find bodyId for this product
         const physicsState = usePhysicsStore.getState();
+
+        // [STORY 5.3] Critical Transition Snapshot
+        await physicsState.syncSnapshots();
+
         const body = Object.values(physicsState.bodies).find(b => b.productId === productId);
         if (body) {
             physicsState.captureSnapshot(productId, body.id);
