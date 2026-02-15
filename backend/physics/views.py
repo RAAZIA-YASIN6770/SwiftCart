@@ -65,3 +65,30 @@ class CelestialControlView(APIView):
         
         return Response({'status': 'Celestial constants propagated'})
 
+class CelestialMetricsView(APIView):
+    """
+    Returns real-time metrics for Mission Control.
+    """
+    def get(self, request):
+        # Fetch interaction heatmap from Sorted Set (Top 5)
+        # Result format: [('prod_id', score), ...]
+        raw_interactions = r.zrevrange("sc:prod:interactions", 0, 4, withscores=True)
+        interactions = []
+        for pid, score in raw_interactions:
+            interactions.append({
+                'id': pid.decode() if isinstance(pid, bytes) else pid,
+                'hits': int(score)
+            })
+            
+        # [Simulated] Decay Latency
+        # In a real system, we'd pull these from a Redis TS or specific latency keys
+        latency = r.get("sc:phys:last_latency")
+        latency_val = float(latency) if latency else 1.2
+            
+        return Response({
+            'heatmap': interactions,
+            'latency': latency_val,
+            'timestamp': time.time()
+        })
+
+

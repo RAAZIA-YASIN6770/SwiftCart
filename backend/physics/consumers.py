@@ -129,16 +129,17 @@ class PulseConsumer(AsyncWebsocketConsumer):
         if text_data:
             try:
                 data = json.loads(text_data)
-                if data.get('type') == 'FLICK':
+                if data.get('type') == 'FLICK' or data.get('type') == 'COLLISION':
                     product_id = data.get('product_id')
                     if product_id:
-                        # Increment interaction counter in Redis
-                        # Pattern: sc:prod:hits:{id}
+                        # Interaction Heatmap: Use Sorted Set for real-time ranking
                         r = redis.Redis(host='localhost', port=6379, db=0)
-                        r.incr(f"sc:prod:hits:{product_id}")
+                        r.zincrby("sc:prod:interactions", 1, product_id)
                         
-                        # Set TTL to ensure keys don't leak if the engine stops
+                        # Fallback individual hit counter for backward compatibility
+                        r.incr(f"sc:prod:hits:{product_id}")
                         r.expire(f"sc:prod:hits:{product_id}", 60)
             except Exception:
                 pass
+
 

@@ -64,7 +64,26 @@ function initPhysics() {
         Matter.World.add(world, body);
     }
 
+    // [STORY 6.2] Collision Tracking
+    Matter.Events.on(engine, 'collisionStart', (event) => {
+        event.pairs.forEach((pair) => {
+            const bodyA = pair.bodyA;
+            const bodyB = pair.bodyB;
+
+            // Only track collisions between products (or products and walls if we had any)
+            if (bodyA.label && bodyB.label) {
+                self.postMessage({
+                    type: 'COLLISION_DETECTED',
+                    payload: {
+                        bodies: [bodyA.label, bodyB.label]
+                    }
+                });
+            }
+        });
+    });
+
     console.log('[Physics Worker] Engine initialized with Radial Attraction');
+
 
     // Start the animation loop
     lastTimestamp = performance.now();

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { usePhysicsStore } from '../store/physicsStore';
+import { pulseReceiver } from '../utils/pulse-receiver';
 
 export const usePhysicsWorker = () => {
     const workerRef = useRef<Worker | null>(null);
@@ -17,10 +18,18 @@ export const usePhysicsWorker = () => {
 
         // Listen for messages from the worker
         worker.onmessage = (event: MessageEvent) => {
-            const { type, bodies } = event.data;
+            const { type, bodies, payload } = event.data;
 
             if (type === 'PHYSICS_UPDATE') {
                 setBodies(bodies);
+            } else if (type === 'COLLISION_DETECTED') {
+                // [STORY 6.2] Forward collisions to backend for real-time heatmap
+                payload.bodies.forEach((productId: string) => {
+                    pulseReceiver.send({
+                        type: 'COLLISION',
+                        product_id: productId
+                    });
+                });
             }
         };
 
