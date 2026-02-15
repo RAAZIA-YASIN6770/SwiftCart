@@ -20,6 +20,7 @@ interface PhysicsStore {
     reducedMotion: boolean;
     failedFlickCount: Record<number, number>; // bodyId -> failure count
     paradoxError: string | null; // [EPIC 5]
+    snapshots: Record<string, { x: number; y: number; rotation: number; price: number }>; // [EPIC 5.2]
     setBodies: (bodies: BodyState[]) => void;
     setInstability: (bodyId: number, instability: number) => void;
     updatePrice: (id: string, price: number) => void;
@@ -30,9 +31,11 @@ interface PhysicsStore {
     resetFlickFailure: (bodyId: number) => void;
     setParadoxError: (error: string | null) => void;
     clearParadoxError: () => void;
+    captureSnapshot: (productId: string, bodyId: number) => void;
+    restoreFromSnapshot: (productId: string) => void;
 }
 
-export const usePhysicsStore = create<PhysicsStore>((set) => ({
+export const usePhysicsStore = create<PhysicsStore>((set, get) => ({
     bodies: {},
     prices: {},
     previousPrices: {},
@@ -40,6 +43,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
     isSupported: true,
     reducedMotion: false,
     failedFlickCount: {},
+    snapshots: {},
     setBodies: (bodyInfos) => {
         const bodiesMap: Record<number, BodyState> = {};
         bodyInfos.forEach((body) => {
@@ -78,4 +82,32 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
     paradoxError: null, // [EPIC 5] Global Error State
     setParadoxError: (error) => set({ paradoxError: error }),
     clearParadoxError: () => set({ paradoxError: null }),
+
+    captureSnapshot: (productId, bodyId) => {
+        const state = get();
+        const body = state.bodies[bodyId];
+        if (body) {
+            set((state) => ({
+                snapshots: {
+                    ...state.snapshots,
+                    [productId]: {
+                        x: body.position.x,
+                        y: body.position.y,
+                        rotation: body.angle,
+                        price: state.prices[productId] || 0
+                    }
+                }
+            }));
+        }
+    },
+
+    restoreFromSnapshot: (productId) => {
+        const snapshot = get().snapshots[productId];
+        if (snapshot) {
+            set((state) => ({
+                prices: { ...state.prices, [productId]: snapshot.price },
+                // We keep snapshots record for potential multiple retries
+            }));
+        }
+    }
 }));

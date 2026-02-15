@@ -208,6 +208,7 @@
 | Epic 2 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 3 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 4 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
+| Epic 5 Progress | 100% | 66% | 🔄 IN_PROGRESS |
 
 ---
 
@@ -278,4 +279,25 @@
 - [x] "Thematic Recovery UI" (Blue/White glitch) replaces standard retry.
 - [x] Orbs freeze visually (grayscale/blur) but maintain position.
 - [x] WebSocket stream pauses on paradox to prevent divergence.
+
+---
+
+### Story 5.2: Thematic Rewind (UI Rollback)
+**Status:** `[COMPLETE]` ✅
+**Priority:** P0
+**Assignee:** Lead Full-Stack Engineer
+**Started:** 2026-02-15
+**Completed:** 2026-02-15
+
+#### Acceptance Criteria
+- [x] Snapshot system in `physicsStore.ts` captures (x, y, rotation, price).
+- [x] GSAP rewind animation mirrors 'Warp' path in reverse.
+- [x] `.vhs-rewind` CSS filter implemented with RGB split and tracking noise.
+- [x] State restoration clears paradox and resets local price.
+
+---
+
+### Story 5.3: Paradox Resolution Loop
+**Status:** `[PENDING]` ⏳
+**Priority:** P0
 
