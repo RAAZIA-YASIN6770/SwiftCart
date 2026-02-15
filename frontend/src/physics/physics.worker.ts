@@ -135,7 +135,8 @@ function loop(time: number) {
             velocity: { x: body.velocity.x, y: body.velocity.y },
             angle: body.angle,
             isStatic: body.isStatic,
-            radius: (body as any).circleRadius // Matter.js specific
+            radius: (body as any).circleRadius, // Matter.js specific
+            instability: (body as any).instability || 0
         }));
 
         self.postMessage({
@@ -304,6 +305,11 @@ self.onmessage = (event: MessageEvent) => {
                 // Optionally nudge velocity too for better prediction
                 if (payload.vel) {
                     Matter.Body.setVelocity(targetBody, payload.vel);
+                }
+
+                // [STORY 3.1] Instability Wiring
+                if (payload.instability !== undefined) {
+                    (targetBody as any).instability = payload.instability;
                 }
             }
             break;

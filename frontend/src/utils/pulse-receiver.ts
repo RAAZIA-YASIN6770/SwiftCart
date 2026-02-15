@@ -36,6 +36,7 @@ class PulseReceiver {
                     id: string,
                     p: number,
                     m?: number, // Mass
+                    ins?: number, // Instability
                     pos: { x: number, y: number },
                     vel: { x: number, y: number },
                     t: number
@@ -45,14 +46,16 @@ class PulseReceiver {
                 usePhysicsStore.getState().updatePrice(decoded.id, decoded.p);
 
                 const mass = decoded.m || 1.0;
+                const instability = decoded.ins || 0;
 
-                // Forward Position/Velocity/Mass to Physics Worker for Interpolation
+                // Forward Position/Velocity/Mass/Instability to Physics Worker for Interpolation
                 window.dispatchEvent(new CustomEvent('pulse_sync', {
                     detail: {
                         id: decoded.id,
                         pos: decoded.pos,
                         vel: decoded.vel,
-                        mass: mass
+                        mass: mass,
+                        instability: instability
                     }
                 }));
 

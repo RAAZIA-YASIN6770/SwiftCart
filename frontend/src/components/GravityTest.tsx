@@ -56,6 +56,7 @@ const GravityTest: React.FC = () => {
                     position={body.position}
                     radius={body.radius || 20}
                     angle={body.angle}
+                    instability={body.instability}
                     isDragging={draggingId === body.id}
                     onDragStart={handleDragStart}
                     onDrag={handleDrag}
