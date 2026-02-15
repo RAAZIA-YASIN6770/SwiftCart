@@ -261,3 +261,21 @@
 - [x] Frontend `ParadoxGlitch` restores Orb state on failure instead of deleting.
 - [x] Backend verification executes fast enough for < 800ms warp window.
 
+---
+
+## Sprint 5: Epic 5 - Temporal Paradox Management
+
+### Story 5.1: The Paradox Oracle (Global Error Handler)
+**Status:** `[COMPLETE]` ✅
+**Priority:** P0 (Safety Layer)
+**Assignee:** Lead Full-Stack Engineer
+**Started:** 2026-02-15
+**Completed:** 2026-02-15
+
+#### Acceptance Criteria
+- [x] Global `ParadoxOracle` component created to catch `ERR_TEMPORAL_PARADOX`.
+- [x] Physics Worker handles `FREEZE_MANIFOLD` event (pauses simulation).
+- [x] "Thematic Recovery UI" (Blue/White glitch) replaces standard retry.
+- [x] Orbs freeze visually (grayscale/blur) but maintain position.
+- [x] WebSocket stream pauses on paradox to prevent divergence.
+

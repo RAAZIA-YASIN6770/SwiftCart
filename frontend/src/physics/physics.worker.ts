@@ -12,6 +12,7 @@ import Matter from 'matter-js';
 let engine: Matter.Engine | null = null;
 let world: Matter.World | null = null;
 let lastTimestamp = 0;
+let isFrozen = false; // [EPIC 5] State Freeze
 
 // Physics configuration
 const PHYSICS_CONFIG = {
@@ -82,6 +83,15 @@ function loop(time: number) {
     if (!engine || !world) return;
 
     const delta = time - lastTimestamp;
+
+    // [EPIC 5] Temporal Paradox Management: Freeze Logic
+    if (isFrozen) {
+        // While frozen, we stop the simulation but keep the loop running
+        // to resume immediately when stabilized.
+        lastTimestamp = time; // Prevent time jump on resume
+        requestAnimationFrame(loop);
+        return;
+    }
 
     // Target 60 FPS
     if (delta >= PHYSICS_CONFIG.delta) {
@@ -318,6 +328,15 @@ self.onmessage = (event: MessageEvent) => {
                     (targetBody as any).stock = payload.stock;
                 }
             }
+            break;
+        case 'FREEZE_MANIFOLD':
+            console.warn('[Physics Worker] ⚠️ TEMPORAL PARADOX DETECTED. FREEZING MANIFOLD.');
+            isFrozen = true;
+            break;
+        case 'RESUME_MANIFOLD':
+            console.log('[Physics Worker] Timeline stabilized. Resuming physics.');
+            isFrozen = false;
+            lastTimestamp = performance.now();
             break;
         default:
             console.warn(`[Physics Worker] Unknown message type: ${type}`);

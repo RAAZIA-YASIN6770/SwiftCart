@@ -55,8 +55,23 @@ export const usePhysicsWorker = () => {
             });
         };
 
+        const handleFreeze = () => {
+            workerRef.current?.postMessage({ type: 'FREEZE_MANIFOLD' });
+        };
+
+        const handleResume = () => {
+            workerRef.current?.postMessage({ type: 'RESUME_MANIFOLD' });
+        };
+
         window.addEventListener('pulse_sync', handlePulseSync);
-        return () => window.removeEventListener('pulse_sync', handlePulseSync);
+        window.addEventListener('freeze_manifold', handleFreeze);
+        window.addEventListener('resume_manifold', handleResume);
+
+        return () => {
+            window.removeEventListener('pulse_sync', handlePulseSync);
+            window.removeEventListener('freeze_manifold', handleFreeze);
+            window.removeEventListener('resume_manifold', handleResume);
+        };
     }, []);
 
     return { addBody, applyImpulse, updateBody };

@@ -10,6 +10,7 @@ import ProductGrid from './components/ProductGrid';
 import WarpTunnel from './components/WarpTunnel';
 import ParadoxGlitch from './components/ParadoxGlitch';
 import HyperdriveButton from './components/HyperdriveButton';
+import ParadoxOracle from './components/ParadoxOracle';
 import './App.css';
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
 
   return (
     <div className="App">
+      <ParadoxOracle />
       <WarpTunnel />
       <ParadoxGlitch />
       <header className="App-header">

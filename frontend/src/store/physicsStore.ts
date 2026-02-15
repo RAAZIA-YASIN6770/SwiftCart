@@ -19,6 +19,7 @@ interface PhysicsStore {
     isSupported: boolean;
     reducedMotion: boolean;
     failedFlickCount: Record<number, number>; // bodyId -> failure count
+    paradoxError: string | null; // [EPIC 5]
     setBodies: (bodies: BodyState[]) => void;
     setInstability: (bodyId: number, instability: number) => void;
     updatePrice: (id: string, price: number) => void;
@@ -27,6 +28,8 @@ interface PhysicsStore {
     setReducedMotion: (reduced: boolean) => void;
     recordFlickFailure: (bodyId: number) => void;
     resetFlickFailure: (bodyId: number) => void;
+    setParadoxError: (error: string | null) => void;
+    clearParadoxError: () => void;
 }
 
 export const usePhysicsStore = create<PhysicsStore>((set) => ({
@@ -72,4 +75,7 @@ export const usePhysicsStore = create<PhysicsStore>((set) => ({
         delete newCounts[bodyId];
         return { failedFlickCount: newCounts };
     }),
+    paradoxError: null, // [EPIC 5] Global Error State
+    setParadoxError: (error) => set({ paradoxError: error }),
+    clearParadoxError: () => set({ paradoxError: null }),
 }));

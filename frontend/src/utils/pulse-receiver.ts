@@ -11,13 +11,20 @@ class PulseReceiver {
     private reconnectAttempts: number = 0;
     private maxReconnectTimeout: number = 30000; // 30s max
     private baseReconnectTimeout: number = 1000; // 1s start
+    private isPaused: boolean = false; // [EPIC 5] Paradox Pause
 
     constructor(url: string = 'ws://localhost:8000/ws/pulse/') {
         this.url = url;
+
+        // Listen for global Paradox events
+        if (typeof window !== 'undefined') {
+            window.addEventListener('freeze_manifold', () => this.pause());
+            window.addEventListener('resume_manifold', () => this.resume());
+        }
     }
 
     public connect() {
-        if (this.socket) return;
+        if (this.socket || this.isPaused) return;
 
         // Simplified JWT token for implementation demo
         const token = 'orbital_sync_token_v1';
@@ -72,6 +79,12 @@ class PulseReceiver {
         };
 
         this.socket.onclose = () => {
+            if (this.isPaused) {
+                console.warn('[PulseReceiver] Socket paused due to Paradox. No reconnect.');
+                this.socket = null;
+                return;
+            }
+
             this.socket = null;
             this.reconnectAttempts++;
 
@@ -88,6 +101,22 @@ class PulseReceiver {
         this.socket.onerror = (err) => {
             console.error('[PulseReceiver] WebSocket error:', err);
         };
+    }
+
+    public pause() {
+        console.warn('[PulseReceiver] Pausing stream due to Temporal Paradox.');
+        this.isPaused = true;
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+    }
+
+    public resume() {
+        console.log('[PulseReceiver] Resuming stream. Re-stabilizing timeline.');
+        this.isPaused = false;
+        this.reconnectAttempts = 0;
+        this.connect();
     }
 
     public disconnect() {
