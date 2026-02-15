@@ -74,6 +74,69 @@
     }
 }
 
+@keyframes glitch-stutter {
+
+    0%,
+    100% {
+        clip-path: inset(0 0 0 0);
+        transform: translate(0);
+    }
+
+    20% {
+        clip-path: inset(10% 0 40% 0);
+        transform: translate(-5px, 2px);
+    }
+
+    40% {
+        clip-path: inset(50% 0 10% 0);
+        transform: translate(5px, -2px);
+    }
+
+    60% {
+        clip-path: inset(30% 0 30% 0);
+        transform: translate(-2px, 5px);
+    }
+
+    80% {
+        clip-path: inset(15% 0 15% 0);
+        transform: translate(2px, -5px);
+    }
+}
+
+@keyframes glitch-desync {
+    0% {
+        transform: translate(0);
+    }
+
+    20% {
+        transform: translate(3px, -2px);
+    }
+
+    40% {
+        transform: translate(-3px, 2px);
+    }
+
+    60% {
+        transform: translate(2px, 3px);
+    }
+
+    80% {
+        transform: translate(-2px, -3px);
+    }
+
+    100% {
+        transform: translate(0);
+    }
+}
+
+.glitch-stutter .glitch-image {
+    animation: glitch-stutter 0.3s steps(4) infinite;
+}
+
+.glitch-desync {
+    animation: glitch-desync 0.05s infinite;
+}
+
 /* Masking: Ensure text/buttons stay clean */
 .orb-content {
     position: relative;

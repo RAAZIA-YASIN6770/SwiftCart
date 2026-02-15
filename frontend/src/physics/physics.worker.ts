@@ -136,7 +136,8 @@ function loop(time: number) {
             angle: body.angle,
             isStatic: body.isStatic,
             radius: (body as any).circleRadius, // Matter.js specific
-            instability: (body as any).instability || 0
+            instability: (body as any).instability || 0,
+            stock: (body as any).stock !== undefined ? (body as any).stock : 100
         }));
 
         self.postMessage({
@@ -310,6 +311,11 @@ self.onmessage = (event: MessageEvent) => {
                 // [STORY 3.1] Instability Wiring
                 if (payload.instability !== undefined) {
                     (targetBody as any).instability = payload.instability;
+                }
+
+                // [STORY 3.2] Stock Tracking
+                if (payload.stock !== undefined) {
+                    (targetBody as any).stock = payload.stock;
                 }
             }
             break;

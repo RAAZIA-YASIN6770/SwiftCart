@@ -13,6 +13,7 @@ interface FlickableOrbProps {
     radius: number;
     angle: number;
     instability: number;
+    stock: number;
     isDragging: boolean;
     onDragStart: (id: number) => void;
     onDrag: (id: number, pos: { x: number; y: number }) => void;
@@ -27,6 +28,7 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
     radius,
     angle,
     instability,
+    stock,
     isDragging,
     onDragStart,
     onDrag,
@@ -37,6 +39,10 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
     const { reducedMotion, failedFlickCount, recordFlickFailure, resetFlickFailure } = usePhysicsStore();
 
     const failedAttempts = failedFlickCount[id] || 0;
+
+    // [STORY 3.2] Threshold Escalation Visuals
+    const isStuttering = stock < 2; // Threshold for frame-skipping (< 2%)
+    const isDesyncing = stock === 1;   // The Final Desync
 
     // [COMMUNAL MASS] UI Scaling
     // The 'radius' prop passed from GravityTest is actually the circleRadius from Matter.js.
@@ -100,6 +106,7 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
         <div
             ref={orbRef}
             {...bindGesture(id)}
+            className={`${isDesyncing ? 'glitch-desync' : ''} ${isStuttering ? 'glitch-stutter' : ''}`}
             style={{
                 position: 'absolute',
                 left: `${position.x}px`,
@@ -153,6 +160,9 @@ const FlickableOrb: React.FC<FlickableOrbProps> = ({
                 <VisualHeartbeat price={price} previousPrice={lastPrice.current} reducedMotion={reducedMotion}>
                     ${price.toFixed(2)}
                 </VisualHeartbeat>
+                <div style={{ fontSize: '10px', marginTop: '2px', opacity: 0.8 }}>
+                    STOCK: {stock > 0 ? stock : 'VOID'}
+                </div>
             </div>
 
             {failedAttempts >= 2 && (
