@@ -206,7 +206,8 @@
 | Stories Completed | 15 | 12 | 🟡 |
 | Epic 1 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 | Epic 2 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
-| Epic 3 Progress | 66% | 66% | 🟡 IN PROGRESS |
+| Epic 3 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
+| Epic 4 Progress | 100% | 100% | 🌈 EPIC LOCKED! |
 
 ---
 
@@ -217,13 +218,13 @@
 **Priority:** P0  
 **Assignee:** Lead Full-Stack Engineer  
 **Started:** 2026-02-15  
-**Completed:** TBD
+**Completed:** 2026-02-15
 
 #### Acceptance Criteria
-- [ ] Django view created to generate Stripe `PaymentIntent`.
-- [ ] `payments` app initialized and wired into `settings.py`.
-- [ ] Frontend `checkoutStore.ts` fetches payment intent on mount.
-- [ ] `HyperdriveButton` reflects "Syncing" -> "Ready" states.
+- [x] Django view created to generate Stripe `PaymentIntent`.
+- [x] `payments` app initialized and wired into `settings.py`.
+- [x] Frontend `checkoutStore.ts` fetches payment intent on mount.
+- [x] `HyperdriveButton` reflects "Syncing" -> "Ready" states.
 - [x] Minimal PII compliance verified (tokens only).
 
 ---
@@ -234,7 +235,7 @@
 **Dependencies:** Story 4.1  
 **Assignee:** Lead Full-Stack Engineer  
 **Started:** 2026-02-15  
-**Completed:** TBD
+**Completed:** 2026-02-15
 
 #### Acceptance Criteria
 - [x] 'Warp Tunnel' overlay implemented with GSAP (Redshift palette).
@@ -242,3 +243,21 @@
 - [x] `HyperdriveButton` triggers animation + backend confirmation in parallel.
 - [x] Backend `ConfirmPaymentView` acts as the final state-save.
 - [x] 'Paradox' error handler implements Red Screen + UI Unlock.
+
+---
+
+### Story 4.3: Atomic Checkout & Paradox Safety
+**Status:** `[COMPLETE]` ✅
+**Priority:** P0 (Mission Critical)
+**Dependencies:** Story 4.1, 4.2
+**Assignee:** Lead Full-Stack Engineer
+**Started:** 2026-02-15
+**Completed:** 2026-02-15
+
+#### Acceptance Criteria
+- [x] Redis WATCH used for optimistic locking on Price and Stock keys.
+- [x] Timestamp verification ensures checkout price matches Redis state (Time-of-Check to Time-of-Use).
+- [x] 'Paradox' status triggered if transaction fails or price decays further.
+- [x] Frontend `ParadoxGlitch` restores Orb state on failure instead of deleting.
+- [x] Backend verification executes fast enough for < 800ms warp window.
+

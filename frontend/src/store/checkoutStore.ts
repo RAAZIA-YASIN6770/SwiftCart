@@ -58,6 +58,14 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
 
         const MIN_DURATION = 800; // 800ms minimum duration for warp animation
 
+        // Anti-Gravity Data: Get current price and timestamp
+        // We import the store dynamically or access the global state if possible, 
+        // but importing the hook and using .getState() is standard Zustand.
+        const { usePhysicsStore } = await import('./physicsStore');
+        const productId = 'pro_001_nebula';
+        const currentPrice = usePhysicsStore.getState().prices[productId] || 100.00;
+        const timestamp = Date.now();
+
         try {
             // Parallel execution: Animation time + Backend Request
             const [response] = await Promise.all([
@@ -66,6 +74,8 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         clientSecret: get().clientSecret,
+                        price: currentPrice,
+                        timestamp: timestamp,
                         // Simulate random error for testing "Paradox" handler if needed
                         // force_paradox: Math.random() > 0.8 
                     })
@@ -88,8 +98,14 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
             // Success: Warp Complete
             set({ status: 'COMPLETE', isWarping: false });
 
+            // Restore Orb? (Or it disappears). Logic says:
+            // "If the Redis transaction fails... restore the Orb... instead of deleting it."
+            // Success means we BOUGHT it. It should disappear or show "Purchased".
+            // We'll leave success behavior as is (COMPLETE state likely shows success UI).
+
         } catch (err: any) {
             console.error("Paradox Detected:", err);
+
             // Paradox Handler: Trigger red screen glitch and unlock
             set({
                 status: 'PARADOX',
@@ -97,8 +113,8 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
                 error: err.message || 'Timeline desynchronization detected.'
             });
 
-            // Auto-reset from Paradox state after a delay or let user dismiss?
-            // "Unlock the UI" implies user can try again.
+            // Trigger Orb Restore (Visual Glitch)
+            // The ParadoxGlitch component should watch this state.
         }
     },
 

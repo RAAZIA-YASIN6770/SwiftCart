@@ -38,26 +38,72 @@ class CreatePaymentIntentView(APIView):
 class ConfirmPaymentView(APIView):
     def post(self, request):
         """
-        Simulates the final state-save and capture.
-        In a real scenario, this might verify the webhook signature or capture the intent.
-        For Story 4.2 "Zero-Step Execution", this acts as the "Final Confirmation".
+        Executes the atomic checkout transaction using Redis WATCH.
+        Ensures price stability and stock availability during the 'Warp' window.
         """
+        import redis
+        
         try:
-            # Simulate processing time
-            time.sleep(0.5)
-            
-            # Simulate "Paradox" error randomly or via instruction (for now, mostly success)
-            # But prompt says "If the backend returns an error, trigger a 'Paradox' visual"
-            # We'll assume success unless a specific 'simulate_error' flag is sent, OR just random for testing?
-            # Better: Let's succeed by default, but allow error forcing.
-            
             data = request.data
-            if data.get('force_paradox'):
-                raise Exception("Paradox detected: Timeline desynchronization.")
-
-            return Response({
-                'status': 'captured',
-                'message': 'Hyperdrive jump successful.'
-            })
+            client_secret = data.get('clientSecret')
+            client_price = data.get('price')
+            client_ts = data.get('timestamp') # When the user clicked
+            product_id = "pro_001_nebula" # Hardcoded for this prototype
+            
+            # Simulate processing time (Part of the 800ms window)
+            # time.sleep(0.3) 
+            
+            r = redis.Redis(host='localhost', port=6379, db=0)
+            price_key = f"sc:prod:price:{product_id}"
+            stock_key = f"sc:prod:stock:{product_id}"
+            
+            # Redis Atomic Transaction (WATCH)
+            pipe = r.pipeline()
+            
+            try:
+                pipe.watch(price_key, stock_key)
+                
+                # Fetch current state
+                current_price_raw = pipe.get(price_key)
+                stock_raw = pipe.get(stock_key)
+                
+                current_price = float(current_price_raw) if current_price_raw else 100.0
+                current_stock = int(stock_raw) if stock_raw else 0
+                
+                # 1. Paradox Check: Out of Stock
+                if current_stock <= 0:
+                    pipe.unwatch()
+                    raise Exception("PARADOX: Singularity collapse. Product is out of stock.")
+                
+                # 2. Paradox Check: Price Deviation (Decayed further or changed)
+                # Allow a tiny float epsilon, but strict check as requested
+                if abs(current_price - float(client_price)) > 0.01:
+                     pipe.unwatch()
+                     raise Exception(f"PARADOX: Temporal slip detected. Price moved from {client_price} to {current_price}.")
+                
+                # 3. Paradox Check: Forced Error (for testing)
+                if data.get('force_paradox'):
+                    pipe.unwatch()
+                    raise Exception("PARADOX: Simulated timeline fracture.")
+                
+                # Execute Transaction
+                pipe.multi()
+                pipe.decr(stock_key)
+                # Verify mass/hits updates could happen here too, but decay engine handles them.
+                # We just consume stock.
+                pipe.execute()
+                
+                return Response({
+                    'status': 'captured',
+                    'message': 'Hyperdrive jump successful. Stock decremented.',
+                    'final_price': current_price,
+                    'remaining_stock': current_stock - 1
+                })
+                
+            except redis.WatchError:
+                # Transaction failed due to concurrent modification
+                raise Exception("PARADOX: Interference detected. Another observer collapsed the waveform.")
+                
         except Exception as e:
-             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+             # Return error to trigger Red Screen in Frontend
+             return Response({'error': str(e)}, status=status.HTTP_409_CONFLICT)
