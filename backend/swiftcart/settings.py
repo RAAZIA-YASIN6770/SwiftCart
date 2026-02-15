@@ -46,7 +46,10 @@ INSTALLED_APPS = [
     
     # SwiftCart Apps
     'physics',
+    'payments',
 ]
+
+STRIPE_SECRET_KEY = 'sk_test_placeholder_key_must_be_configured'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
