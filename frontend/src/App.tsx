@@ -11,6 +11,7 @@ import WarpTunnel from './components/WarpTunnel';
 import ParadoxGlitch from './components/ParadoxGlitch';
 import HyperdriveButton from './components/HyperdriveButton';
 import ParadoxOracle from './components/ParadoxOracle';
+import CelestialAdmin from './components/CelestialAdmin';
 import './App.css';
 
 function App() {
@@ -73,8 +74,13 @@ function App() {
     setViewMode(viewMode === 'PHYSICS' ? 'LIST' : 'PHYSICS');
   };
 
+  if (window.location.pathname === '/celestial-admin') {
+    return <CelestialAdmin />;
+  }
+
   return (
     <div className="App">
+
       <ParadoxOracle />
       <WarpTunnel />
       <ParadoxGlitch />

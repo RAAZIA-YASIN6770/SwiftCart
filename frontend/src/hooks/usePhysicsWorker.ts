@@ -63,14 +63,23 @@ export const usePhysicsWorker = () => {
             workerRef.current?.postMessage({ type: 'RESUME_MANIFOLD' });
         };
 
+        const handleCelestialUpdate = (e: any) => {
+            workerRef.current?.postMessage({
+                type: 'CELESTIAL_UPDATE',
+                payload: e.detail
+            });
+        };
+
         window.addEventListener('pulse_sync', handlePulseSync);
         window.addEventListener('freeze_manifold', handleFreeze);
         window.addEventListener('resume_manifold', handleResume);
+        window.addEventListener('celestial_update', handleCelestialUpdate);
 
         return () => {
             window.removeEventListener('pulse_sync', handlePulseSync);
             window.removeEventListener('freeze_manifold', handleFreeze);
             window.removeEventListener('resume_manifold', handleResume);
+            window.removeEventListener('celestial_update', handleCelestialUpdate);
         };
     }, []);
 

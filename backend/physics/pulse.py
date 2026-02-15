@@ -35,3 +35,29 @@ def broadcast_price_pulse(product_id, price, position=None, velocity=None):
             "data": binary_data,
         }
     )
+
+def broadcast_celestial_update(gravity=None, base_mass=None, force_pulse=False, product_id=None):
+    """
+    Broadcasts global physics constants or a Force Pulse event.
+    """
+    channel_layer = get_channel_layer()
+    
+    payload = {
+        'type': 'CELESTIAL',
+        'g': gravity,
+        'm': base_mass,
+        'pulse': force_pulse,
+        'pid': product_id,
+        't': time.time()
+    }
+    
+    binary_data = msgpack.packb(payload, use_bin_type=True)
+    
+    async_to_sync(channel_layer.group_send)(
+        "global_pulse",
+        {
+            "type": "pulse.message",
+            "data": binary_data,
+        }
+    )
+
