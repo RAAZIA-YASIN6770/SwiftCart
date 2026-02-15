@@ -224,4 +224,21 @@
 - [ ] `payments` app initialized and wired into `settings.py`.
 - [ ] Frontend `checkoutStore.ts` fetches payment intent on mount.
 - [ ] `HyperdriveButton` reflects "Syncing" -> "Ready" states.
-- [ ] Minimal PII compliance verified (tokens only).
+- [x] Minimal PII compliance verified (tokens only).
+
+---
+
+### Story 4.2: Zero-Step Execution
+**Status:** `[IN_PROGRESS]` 🔄
+**Priority:** P0
+**Dependencies:** Story 4.1  
+**Assignee:** Lead Full-Stack Engineer  
+**Started:** 2026-02-15  
+**Completed:** TBD
+
+#### Acceptance Criteria
+- [x] 'Warp Tunnel' overlay implemented with GSAP (Redshift palette).
+- [x] `checkoutStore.ts` manages `isWarping` state (UI Lockdown).
+- [x] `HyperdriveButton` triggers animation + backend confirmation in parallel.
+- [x] Backend `ConfirmPaymentView` acts as the final state-save.
+- [x] 'Paradox' error handler implements Red Screen + UI Unlock.

@@ -7,6 +7,9 @@ import { pulseReceiver } from './utils/pulse-receiver';
 import { useAccessibility } from './hooks/useAccessibility';
 import GravityTest from './components/GravityTest';
 import ProductGrid from './components/ProductGrid';
+import WarpTunnel from './components/WarpTunnel';
+import ParadoxGlitch from './components/ParadoxGlitch';
+import HyperdriveButton from './components/HyperdriveButton';
 import './App.css';
 
 function App() {
@@ -57,9 +60,12 @@ function App() {
 
   return (
     <div className="App">
+      <WarpTunnel />
+      <ParadoxGlitch />
       <header className="App-header">
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
           <h1>🚀 SwiftCart</h1>
+          <HyperdriveButton />
           <button
             onClick={toggleMode}
             className={`mode-toggle ${viewMode === 'PHYSICS' ? 'active' : ''}`}

@@ -1,77 +1,61 @@
-import React, { useEffect } from 'react';
 import { useCheckoutStore } from '../store/checkoutStore';
 
-const HyperdriveButton: React.FC = () => {
-    const { status, fetchPaymentIntent } = useCheckoutStore();
+export default function HyperdriveButton() {
+    const { confirmPayment, isWarping, status } = useCheckoutStore();
 
-    useEffect(() => {
-        // Auto-fetch on mount (mocking "Coordinate Retrieval")
-        if (status === 'IDLE') {
-            fetchPaymentIntent();
-        }
-    }, [status, fetchPaymentIntent]);
-
-    const getLabel = () => {
-        switch (status) {
-            case 'IDLE': return 'INITIALIZING...';
-            case 'SYNCING': return 'SYNCING COORDINATES...';
-            case 'READY': return 'ENGAGE HYPERDRIVE';
-            case 'PROCESSING': return 'WARPING...';
-            case 'COMPLETE': return 'DESTINATION REACHED';
-            case 'ERROR': return 'SYSTEM FAILURE';
-            default: return 'HYPERDRIVE';
-        }
-    };
-
-    const isReady = status === 'READY';
-    const isError = status === 'ERROR';
+    if (status === 'COMPLETE') return (
+        <button style={{
+            padding: '15px 40px',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            color: '#00ff00',
+            background: 'rgba(0, 255, 0, 0.1)',
+            border: '2px solid #00ff00',
+            borderRadius: '50px',
+            cursor: 'default',
+            boxShadow: '0 0 20px #00ff00'
+        }}>
+            JUMP SUCCESSFUL
+        </button>
+    );
 
     return (
         <button
-            disabled={!isReady && !isError}
-            onClick={() => {
-                if (isError) {
-                    fetchPaymentIntent(); // Retry
-                } else {
-                    console.log("Hyperdrive Engaged!");
-                }
-            }}
+            onClick={confirmPayment}
+            disabled={isWarping}
             style={{
-                position: 'fixed',
-                bottom: '20px',
-                right: '20px',
-                padding: '15px 30px',
-                backgroundColor: isError ? '#ff003c' : (isReady ? '#00f3ff' : '#1a1a2e'),
-                color: isReady ? '#000' : (isError ? '#fff' : '#00aaff'),
-                border: `2px solid ${isError ? '#ff003c' : '#00f3ff'}`,
-                borderRadius: '4px',
-                fontFamily: 'monospace',
-                fontSize: '16px',
+                position: 'relative',
+                padding: '15px 40px',
+                fontSize: '1.2rem',
                 fontWeight: 'bold',
-                cursor: isReady || isError ? 'pointer' : 'wait',
-                boxShadow: isReady
-                    ? '0 0 20px rgba(0, 243, 255, 0.6), inset 0 0 10px rgba(0, 243, 255, 0.2)'
-                    : 'none',
-                transition: 'all 0.3s ease',
                 textTransform: 'uppercase',
-                letterSpacing: '2px',
-                animation: status === 'SYNCING' ? 'pulse-opacity 1s infinite' : 'none',
-                zIndex: 1000,
-                opacity: status === 'IDLE' ? 0 : 1
+                color: '#fff',
+                background: isWarping ? '#333' : 'linear-gradient(45deg, #ff0055, #ff4d4d)',
+                border: 'none',
+                borderRadius: '50px',
+                cursor: isWarping ? 'not-allowed' : 'pointer',
+                boxShadow: isWarping ? 'none' : '0 0 20px #ff0055, 0 0 40px #ff4d4d',
+                transition: 'all 0.3s ease',
+                transform: isWarping ? 'scale(0.95)' : 'scale(1)',
+                overflow: 'hidden'
             }}
         >
-            {getLabel()}
-            <style>
-                {`
-                    @keyframes pulse-opacity {
-                        0% { opacity: 0.6; }
-                        50% { opacity: 1; }
-                        100% { opacity: 0.6; }
-                    }
-                `}
-            </style>
+            {isWarping ? 'WARP INITIATED...' : 'ENGAGE HYPERDRIVE'}
+
+            {!isWarping && (
+                <div style={{
+                    position: 'absolute',
+                    top: '-50%',
+                    left: '-50%',
+                    width: '200%',
+                    height: '200%',
+                    background: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0))',
+                    transform: 'rotate(45deg)',
+                    animation: 'shine 3s infinite',
+                    opacity: 0.1,
+                    pointerEvents: 'none'
+                }} />
+            )}
         </button>
     );
-};
-
-export default HyperdriveButton;
+}
